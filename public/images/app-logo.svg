@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="48" viewBox="0 0 160 48" role="img" aria-label="木及简历">
+  <rect x="1" y="1" width="46" height="46" rx="8" fill="#f7f8fa" stroke="#d8dde6" />
+  <path d="M15 15h18M15 24h18M15 33h12" stroke="#2f6feb" stroke-width="3" stroke-linecap="round" />
+  <path d="M56 15h15v4H60v6h10v4H60v8h-4V15Zm23 0h4v22h-4V15Zm7 0h4v18h11v4H86V15Z" fill="#1f2328" />
+  <text x="56" y="42" fill="#586069" font-family="Arial, sans-serif" font-size="10">Markdown Resume</text>
+</svg>

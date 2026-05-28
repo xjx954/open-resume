@@ -1,0 +1,180 @@
+// ============================================================
+// Editor Layout — Modern Creative Editor
+// ============================================================
+
+.rs-container {
+  display: flex;
+  width: 100%;
+  min-width: 1000px;
+  height: calc(100vh - 64px - 48px); // header (64px) + toolbar (48px)
+  position: relative;
+  flex-direction: column;
+}
+
+// —— Preview Panel (right side) ——
+
+.rs-preview-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--preview-bg, #e8ecf1);
+}
+
+.rs-preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+.rs-preview-toolbar__group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-md, 10px);
+  padding: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.rs-preview-toolbar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--text-secondary, #6b7280);
+  font-size: 15px;
+  cursor: pointer;
+  transition: background var(--transition-fast, 0.15s), color var(--transition-fast, 0.15s);
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary, #1a1d26);
+  }
+
+  &:active {
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  &--active {
+    background: var(--accent-soft, #eff6ff);
+    color: var(--accent, #2563eb);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.rs-preview-toolbar__zoom-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  min-width: 40px;
+  text-align: center;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.rs-preview-toolbar__divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border-light, #eef0f2);
+  margin: 0 4px;
+}
+
+// —— Preview wrapper ——
+
+.rs-view-wrapper {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 24px 32px 48px;
+}
+
+.rs-view-zoom-shell {
+  margin: 0 auto;
+  min-width: 794px;
+  transition: width 0.1s ease;
+}
+
+.rs-view-inner {
+  width: 794px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: var(--paper-shadow, 0 2px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04));
+  transform-origin: top left;
+  transition: transform 0.1s ease;
+}
+
+.rs-view {
+  position: relative;
+}
+
+// —— Resizer (split pane handle) ——
+
+.Resizer {
+  background: transparent;
+  z-index: 1;
+  box-sizing: border-box;
+
+  &.vertical {
+    width: 8px;
+    margin: 0 -4px;
+    cursor: col-resize;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 3px;
+      height: 32px;
+      border-radius: 2px;
+      background: var(--border-default, #e5e7eb);
+      transition: background var(--transition-fast, 0.15s), height 0.15s;
+    }
+
+    &:hover::after {
+      background: var(--accent, #2563eb);
+      height: 48px;
+    }
+  }
+
+  &.disabled {
+    cursor: not-allowed;
+
+    &::after {
+      background: transparent;
+    }
+  }
+}
+
+// Keep horizontal resizer styles (unused but harmless)
+.Resizer.horizontal {
+  height: 11px;
+  margin: -5px 0;
+  border-top: 5px solid rgba(255, 255, 255, 0);
+  border-bottom: 5px solid rgba(255, 255, 255, 0);
+  cursor: row-resize;
+  width: 100%;
+}
+
+.Resizer.horizontal:hover {
+  border-top: 5px solid rgba(0, 0, 0, 0.15);
+  border-bottom: 5px solid rgba(0, 0, 0, 0.15);
+}

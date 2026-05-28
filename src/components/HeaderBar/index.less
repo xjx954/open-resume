@@ -1,0 +1,266 @@
+// ============================================================
+// Editor Toolbar — Modern SaaS Style
+// ============================================================
+
+.rs-editor-toolbar {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 20px;
+  background: #fff;
+  border-bottom: 1px solid var(--border-light, #eef0f2);
+  box-shadow: var(--toolbar-shadow, 0 1px 3px rgba(0, 0, 0, 0.04));
+  position: relative;
+  z-index: 10;
+  gap: 16px;
+
+  // —— Left section ——
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+
+  &__logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    flex-shrink: 0;
+  }
+
+  &__doc-info {
+    display: flex;
+    align-items: baseline;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  &__doc-name {
+    font-size: 14px;
+    font-weight: 650;
+    color: var(--text-primary, #1a1d26);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__doc-ext {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary, #9ca3af);
+    flex-shrink: 0;
+  }
+
+  // —— Center section ——
+  &__center {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  &__theme-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 550;
+    color: var(--text-secondary, #6b7280);
+    background: #f3f4f6;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  &__save-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #22c55e;
+  }
+
+  // —— Right section ——
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  // —— Buttons ——
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border: none;
+    border-radius: var(--radius-sm, 6px);
+    font-size: 13px;
+    font-weight: 550;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--transition-fast, 0.15s), color var(--transition-fast, 0.15s), box-shadow var(--transition-fast, 0.15s);
+
+    svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    // Ghost (secondary) style
+    &--ghost {
+      color: var(--text-secondary, #6b7280);
+      background: transparent;
+
+      &:hover {
+        color: var(--text-primary, #1a1d26);
+        background: #f3f4f6;
+      }
+    }
+
+    // Primary style
+    &--primary {
+      color: #fff;
+      background: var(--text-primary, #1a1d26);
+      box-shadow: 0 2px 8px rgba(17, 19, 24, 0.12);
+
+      &:hover {
+        background: #2d3140;
+        box-shadow: 0 4px 12px rgba(17, 19, 24, 0.18);
+      }
+    }
+
+    // Icon-only button
+    &--icon {
+      width: 34px;
+      padding: 0;
+      justify-content: center;
+      color: var(--text-secondary, #6b7280);
+      background: transparent;
+      font-size: 16px;
+
+      &:hover {
+        color: var(--text-primary, #1a1d26);
+        background: #f3f4f6;
+      }
+    }
+
+    // Active state
+    &--active {
+      color: var(--accent, #2563eb) !important;
+      background: var(--accent-soft, #eff6ff) !important;
+    }
+  }
+}
+
+// —— Overflow menu ——
+.header-overflow-menu {
+  min-width: 200px;
+
+  .ant-dropdown-menu-item-group-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary, #9ca3af);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 16px 4px;
+  }
+
+  .uploadMd {
+    display: none;
+  }
+}
+
+// —— Template browser (keep existing styles, polish) ——
+
+.template-browser {
+  position: relative;
+  padding: 0 44px;
+}
+
+.template-viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+}
+
+.template-wrapper {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  padding: 22px 0 10px;
+
+  .template {
+    flex: 0 0 250px;
+    margin: 0 10px;
+    cursor: pointer;
+  }
+
+  .active {
+    box-shadow: 0px 0px 5px 3px #888080;
+  }
+
+  .template-img {
+    width: 250px;
+    height: 345px;
+    object-fit: cover;
+    background: #f7f8fa;
+    border: 1px solid #e4e7ed;
+  }
+
+  .template-title {
+    text-align: center;
+    margin: 5px 0;
+  }
+}
+
+.template-nav {
+  position: absolute;
+  top: 182px;
+  z-index: 1;
+  width: 34px;
+  height: 64px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  font-size: 36px;
+  line-height: 54px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+  &:hover {
+    color: #1890ff;
+    border-color: #1890ff;
+  }
+}
+
+.template-nav--left {
+  left: 4px;
+}
+
+.template-nav--right {
+  right: 4px;
+}
+
+.rs-article-container {
+  h2 {
+    font-size: 18px;
+    margin: 10px 0;
+  }
+  img {
+    width: 60%;
+  }
+  li {
+    margin-left: 20px;
+    list-style-type: square;
+  }
+}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="110" height="150" viewBox="0 0 110 150" role="img" aria-label="证件照占位">
+  <rect width="110" height="150" fill="#f3f6fb"/>
+  <circle cx="55" cy="48" r="24" fill="#d8e2f1"/>
+  <path d="M20 126c5-30 23-45 35-45s30 15 35 45" fill="#d8e2f1"/>
+  <rect x="0.5" y="0.5" width="109" height="149" fill="none" stroke="#d7dfeb"/>
+</svg>

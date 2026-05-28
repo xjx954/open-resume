@@ -1,0 +1,222 @@
+* {
+  font-family: 'pingfang-sc' !important;
+}
+.rs-view .left {
+  flex: auto;
+  text-align: left;
+}
+.rs-view .right {
+  flex: auto;
+  text-align: right;
+}
+.rs-view a {
+  color: #d4d4d4;
+  text-decoration: none;
+  background-color: transparent;
+  outline: none;
+  cursor: pointer;
+  -webkit-transition: color 0.3s;
+  transition: color 0.3s;
+  -webkit-text-decoration-skip: objects;
+}
+.rs-view img {
+  max-width: 400px;
+}
+.rs-view code {
+  padding: 3px 6px;
+  display: inline-block;
+  color: #333;
+  border-radius: 4px;
+  margin: 0 2px 0px;
+  background-color: rgba(27, 31, 35, 0.05);
+  word-break: break-all;
+  font-size: 13px;
+}
+.rs-view h1 {
+  font-weight: 900;
+}
+.rs-view h2 {
+  font-weight: 700;
+}
+.rs-view h3 {
+  font-weight: 600;
+}
+.rs-view h4,
+.rs-view h5 {
+  position: relative;
+  line-height: 20px;
+  overflow: hidden;
+  margin-left: 50px;
+  margin-right: 50px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.rs-view .h2_block + .h2_block {
+  padding-top: 10px;
+}
+.rs-view .h3_block + .h3_block {
+  padding-top: 0px;
+}
+.rs-view ul {
+  overflow: hidden;
+}
+.rs-view ul li {
+  list-style: square inside;
+}
+.rs-view li ul li {
+  padding-left: 1px;
+  list-style: circle inside;
+}
+.rs-view ol {
+  overflow: hidden;
+  margin: 0 50px;
+}
+.rs-view ol li {
+  list-style: decimal inside;
+}
+.rs-view ol ul li {
+  padding-left: 1px;
+  list-style: circle inside;
+}
+.break-line {
+  display: block;
+  width: 100%;
+  height: 5px;
+}
+.rs-view {
+  width: 100%;
+  min-height: 1040px;
+  padding: 28px 42px 32px;
+  background: #fff;
+  color: #111;
+  border: 12px solid #eaf4ff;
+  box-shadow: inset 0 0 0 1px #d8e5f2;
+}
+.rs-view .h1_block {
+  position: relative;
+  margin: 0 0 10px;
+  padding: 18px 0 16px;
+  background: #fff;
+}
+.rs-view .h1_block > .lr-container + .h2_block {
+  margin-top: 110px;
+}
+.rs-view .h1_block > h1 + p {
+  margin: 0;
+  height: 0;
+  line-height: 0;
+}
+.rs-view .h1_block > h1 + p img,
+.rs-view .h1_block > img {
+  position: absolute !important;
+  top: 14px !important;
+  left: 22px !important;
+  width: 92px !important;
+  max-width: 92px;
+  height: 124px;
+  object-fit: cover;
+  border: 1px solid #dce4ef;
+}
+.rs-view .h1_block > h1 {
+  margin: 44px 370px 0 150px;
+  color: #111;
+  font-size: 31px;
+  line-height: 1.2;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+.rs-view .h1_block > .lr-container {
+  position: absolute;
+  top: 28px;
+  right: 24px;
+  width: 335px;
+  display: block;
+  padding: 0;
+}
+.rs-view .h1_block > .lr-container .left {
+  display: none;
+}
+.rs-view .h1_block > .lr-container .right {
+  text-align: left;
+}
+.rs-view .h1_block > .lr-container p {
+  margin: 0 0 7px;
+  color: #222;
+  font-size: 12.5px;
+  line-height: 1.42;
+  word-break: break-word;
+}
+.rs-view .h1_block > .lr-container a {
+  color: #222;
+}
+.rs-view .h2_block {
+  margin: 0;
+  padding: 8px 0 2px;
+  background: #fff;
+}
+.rs-view h2 {
+  margin: 0 22px 8px;
+  padding: 0 0 4px;
+  color: #2e557a;
+  font-size: 19px;
+  line-height: 1.35;
+  font-weight: 900;
+  border-bottom: 3px solid #2e557a;
+}
+.rs-view .h3_block {
+  padding: 0 0 3px;
+}
+.rs-view h3 {
+  margin: 7px 22px 2px;
+  color: #111;
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 800;
+}
+.rs-view h4,
+.rs-view h5 {
+  margin: 2px 22px;
+  color: #111;
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 700;
+}
+.rs-view p {
+  margin: 0 22px 4px;
+  color: #222;
+  font-size: 12.5px;
+  line-height: 1.68;
+}
+.rs-view ul,
+.rs-view ol {
+  margin: 0 22px 5px;
+  padding: 0;
+}
+.rs-view li {
+  margin-top: 3px;
+  color: #222;
+  font-size: 12.5px;
+  line-height: 1.72;
+  list-style-position: inside;
+}
+.rs-view code {
+  padding: 1px 5px;
+  color: #1d3f5f;
+  background: #edf5ff;
+  border-radius: 2px;
+  font-size: 12px;
+}
+.rs-view a {
+  color: #222;
+  text-decoration: none;
+}
+.rs-view a:hover,
+.rs-view a:active,
+.rs-view a:focus {
+  color: #2e557a;
+  text-decoration: none;
+  outline: 0;
+}
+.rs-view .icon {
+  fill: #2e557a;
+}
