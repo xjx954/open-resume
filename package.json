@@ -99,8 +99,10 @@
   },
   "scripts": {
     "start": "node scripts/withLegacyOpenSSL.js scripts/start.js",
+    "dev": "node scripts/dev.js",
     "build": "node scripts/withLegacyOpenSSL.js scripts/build.js",
     "test": "node scripts/test.js",
+    "postinstall": "cd server && npm install",
     "watch:themes": "gulp watch",
     "compile:themes": "gulp compileLess",
     "build:themes": "node public/themes/generate.js"
