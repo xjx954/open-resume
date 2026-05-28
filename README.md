@@ -16,17 +16,36 @@ A free, open-source Markdown resume builder with live preview, multiple themes, 
 ## Quick Start
 
 ```bash
-# Install dependencies
-yarn install
+# Install dependencies (auto-installs server deps via postinstall)
+npm install
 
-# Start dev server
-yarn start
+# Start (frontend :3000 + PDF backend :4000)
+npm start
 
-# Build for production
-yarn build
+# Frontend only
+npm run start:web
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### PDF Export
+
+PDF export requires a running backend service (included in `npm start`).
+
+| Service | Port | Endpoint |
+|---|---|---|
+| Frontend | 3000 | React dev server |
+| PDF backend | 4000 | `POST /api/pdf` |
+
+The backend uses Puppeteer (headless Chrome) to render HTML to PDF. On first install, it downloads Chromium (~300MB).
+
+Configure the backend URL in `.env`:
+
+```
+REACT_APP_PDF_API_URL=http://localhost:4000/api/pdf
+```
+
+Copy `.env.example` → `.env` for the default configuration.
 
 ## Tech Stack
 
@@ -35,6 +54,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - Ant Design UI components
 - markdown-it for Markdown parsing
 - CodeMirror for code editing
+- Puppeteer for PDF generation
 - Webpack 4 (ejected CRA)
 
 ## License

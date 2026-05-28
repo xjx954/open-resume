@@ -1,23 +1,56 @@
 /**
- * One-command dev launcher: starts both the frontend dev server and the PDF backend.
+ * Open Resume — Unified Dev Launcher
  *
- * Usage:
- *   npm run dev
+ * Starts frontend + PDF backend with a single command.
+ * Handles startup, crash recovery, and graceful shutdown.
  *
- * Press Ctrl+C to gracefully shut down both services.
+ *   npm start        → unified launch (both services)
+ *   npm run start:web → frontend only
  */
 
 const { spawn, execSync } = require('child_process');
 const path = require('path');
+const http = require('http');
 
 const ROOT = path.resolve(__dirname, '..');
 const isWindows = process.platform === 'win32';
 
-// Track child PIDs for cleanup
+const FRONTEND_PORT = 3000;
+const PDF_SERVER_PORT = 4000;
+
 const children = [];
 
+// ── Helpers ──────────────────────────────────────────
+
+function color(c, s) {
+  const codes = { red: 31, green: 32, yellow: 33, blue: 34, magenta: 35, cyan: 36, gray: 90, reset: 0 };
+  return `\x1b[${codes[c] || 0}m${s}\x1b[0m`;
+}
+
+function banner() {
+  console.log('');
+  console.log(`  ${color('cyan', '◆')}  ${color('reset', 'Open Resume')}  ${color('gray', '— dev mode')}`);
+  console.log('');
+}
+
+function checkPort(port) {
+  return new Promise((resolve) => {
+    const req = http.get(`http://localhost:${port}`, () => {
+      resolve(false); // port is in use
+    });
+    req.on('error', () => resolve(true)); // port is free
+    req.setTimeout(1500, () => { req.destroy(); resolve(false); });
+  });
+}
+
+function killTree(pid) {
+  if (!isWindows) return;
+  try { execSync(`taskkill /F /T /PID ${pid} 2>nul`, { stdio: 'ignore' }); } catch {}
+}
+
+// ── Process manager ──────────────────────────────────
+
 function start(name, command, args, opts = {}) {
-  // On Windows, NEVER use shell:true — it prevents signal propagation to grandchildren
   const child = spawn(command, args, {
     cwd: ROOT,
     stdio: 'pipe',
@@ -26,68 +59,64 @@ function start(name, command, args, opts = {}) {
 
   children.push(child);
 
-  // Forward output with prefix
   child.stdout.on('data', (data) => {
-    process.stdout.write(`\x1b[36m[${name}]\x1b[0m ${data}`);
+    const prefix = color('cyan', `[${name}]`);
+    process.stdout.write(`${prefix} ${data}`);
   });
 
   child.stderr.on('data', (data) => {
-    process.stderr.write(`\x1b[33m[${name}]\x1b[0m ${data}`);
+    // webpack-dev-server outputs info to stderr — treat as normal
+    process.stderr.write(`${color('cyan', `[${name}]`)} ${data}`);
   });
 
   child.on('error', (err) => {
-    console.error(`\x1b[31m[${name}] Failed to start: ${err.message}\x1b[0m`);
+    console.error(`${color('red', `[${name}]`)} Failed: ${err.message}`);
   });
 
-  child.on('close', (code) => {
+  child.on('close', (code, signal) => {
     const idx = children.indexOf(child);
     if (idx >= 0) children.splice(idx, 1);
-    // Only log non-zero exits (not killed by us)
-    if (code !== 0 && code !== null) {
-      console.log(`\x1b[36m[${name}]\x1b[0m exited with code ${code}`);
+
+    if (signal) {
+      console.log(`${color('gray', `[${name}]`)} stopped (${signal})`);
+    } else if (code !== 0 && code !== null) {
+      console.log(`${color('yellow', `[${name}]`)} exited (${code})`);
     }
   });
 
   return child;
 }
 
-// Kill a process and all its descendants on Windows
-function killTree(pid) {
-  if (!isWindows) return;
-  try {
-    execSync(`taskkill /F /T /PID ${pid} 2>nul`, { stdio: 'ignore' });
-  } catch {
-    // Process may already be dead — ignore
-  }
-  try {
-    execSync(`taskkill /F /PID ${pid} 2>nul`, { stdio: 'ignore' });
-  } catch {
-    // ignore
-  }
+// Restart a crashed process
+function watch(name, child, command, args, opts) {
+  child.on('close', (code, signal) => {
+    if (signal) return; // killed by us — don't restart
+    if (children.length === 0) return; // shutting down
+    console.log(`${color('yellow', `[${name}]`)} restarting...`);
+    const newChild = start(name, command, args, opts);
+    watch(name, newChild, command, args, opts);
+  });
 }
 
-// Graceful shutdown
+// ── Shutdown ─────────────────────────────────────────
+
+let shuttingDown = false;
+
 function shutdown() {
-  if (children.length === 0) {
-    process.exit(0);
-  }
+  if (shuttingDown) return;
+  shuttingDown = true;
 
-  console.log('\n\x1b[35mShutting down services...\x1b[0m');
+  console.log(`\n${color('magenta', 'Shutting down...')}`);
 
-  // Step 1: Send graceful SIGTERM to all children
+  // Step 1: graceful SIGTERM
   children.forEach((child) => {
-    try {
-      child.kill('SIGTERM');
-    } catch {
-      // already dead
-    }
+    try { child.kill('SIGTERM'); } catch {}
   });
 
-  // Step 2: After 2s, force kill any survivors (including orphaned grandchildren)
+  // Step 2: force kill after 2s
   setTimeout(() => {
     children.forEach((child) => {
-      if (child.exitCode === null) {
-        // Still alive — force kill
+      if (child.exitCode === null && child.signalCode === null) {
         if (isWindows) {
           killTree(child.pid);
         } else {
@@ -96,54 +125,69 @@ function shutdown() {
       }
     });
 
-    // Step 3: Clean up any remaining Puppeteer browsers on the system
+    // Step 3: cleanup orphaned browser processes
     if (isWindows) {
       try {
-        // Kill orphaned Chromium processes that may have been spawned by Puppeteer
         execSync('taskkill /F /IM chrome.exe /FI "SESSIONNAME eq Console" 2>nul', { stdio: 'ignore' });
-      } catch {
-        // ignore — no orphaned chrome processes
-      }
+      } catch {}
     }
 
-    console.log('\x1b[32mAll services stopped.\x1b[0m');
+    console.log(color('green', 'Done.\n'));
     process.exit(0);
   }, 2000);
 }
 
-// Handle exit signals
-process.on('SIGINT', shutdown);   // Ctrl+C
-process.on('SIGTERM', shutdown);  // kill command
-process.on('SIGBREAK', shutdown); // Windows console close
-
-// Handle unexpected exits
-process.on('exit', () => {
-  children.forEach((child) => {
-    try { child.kill('SIGKILL'); } catch {}
-  });
-});
-
-// Handle uncaught errors — don't leave orphaned processes
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
+process.on('SIGBREAK', shutdown);
 process.on('uncaughtException', (err) => {
-  console.error('\x1b[31mFatal error:\x1b[0m', err.message);
+  console.error(color('red', 'Fatal:'), err.message);
   shutdown();
 });
 
-// ────────────────────────────────────────────
-// Start everything
-// ────────────────────────────────────────────
+// ── Main ─────────────────────────────────────────────
 
-console.log('\x1b[32mStarting Open Resume...\x1b[0m\n');
+async function main() {
+  banner();
 
-// PDF backend — no shell wrapper, direct node invocation
-const pdfServer = start('pdf', process.execPath, ['index.js'], {
-  cwd: path.join(ROOT, 'server'),
-});
+  // Port conflict check
+  const webFree = await checkPort(FRONTEND_PORT);
+  const pdfFree = await checkPort(PDF_SERVER_PORT);
 
-// Frontend dev server — with legacy OpenSSL for Node 17+
-const frontend = start('web', process.execPath, [
-  path.join(ROOT, 'scripts', 'withLegacyOpenSSL.js'),
-  path.join(ROOT, 'scripts', 'start.js'),
-]);
+  if (!webFree) {
+    console.log(`${color('yellow', '!')} Port ${FRONTEND_PORT} is in use — frontend may fail`);
+  }
+  if (!pdfFree) {
+    console.log(`${color('yellow', '!')} Port ${PDF_SERVER_PORT} is in use — PDF server may fail`);
+  }
 
-console.log('\x1b[90mPress Ctrl+C to stop all services.\x1b[0m\n');
+  console.log(color('gray', 'Starting services...\n'));
+
+  // PDF backend
+  const pdfServer = start('pdf ', process.execPath, ['index.js'], {
+    cwd: path.join(ROOT, 'server'),
+    env: { ...process.env, PORT: String(PDF_SERVER_PORT) },
+  });
+  watch('pdf ', pdfServer, process.execPath, ['index.js'], {
+    cwd: path.join(ROOT, 'server'),
+    env: { ...process.env, PORT: String(PDF_SERVER_PORT) },
+  });
+
+  // Frontend dev server
+  const webServer = start('web ', process.execPath, [
+    path.join(ROOT, 'scripts', 'withLegacyOpenSSL.js'),
+    path.join(ROOT, 'scripts', 'start.js'),
+  ], {
+    env: { ...process.env, PORT: String(FRONTEND_PORT), BROWSER: 'none' },
+  });
+  watch('web ', webServer, process.execPath, [
+    path.join(ROOT, 'scripts', 'withLegacyOpenSSL.js'),
+    path.join(ROOT, 'scripts', 'start.js'),
+  ], {
+    env: { ...process.env, PORT: String(FRONTEND_PORT), BROWSER: 'none' },
+  });
+
+  console.log(color('gray', 'Press Ctrl+C to stop all services.\n'));
+}
+
+main();

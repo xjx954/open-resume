@@ -98,8 +98,8 @@
     "workbox-webpack-plugin": "5.1.4"
   },
   "scripts": {
-    "start": "node scripts/withLegacyOpenSSL.js scripts/start.js",
-    "dev": "node scripts/dev.js",
+    "start": "node scripts/dev.js",
+    "start:web": "node scripts/withLegacyOpenSSL.js scripts/start.js",
     "build": "node scripts/withLegacyOpenSSL.js scripts/build.js",
     "test": "node scripts/test.js",
     "postinstall": "cd server && npm install",
