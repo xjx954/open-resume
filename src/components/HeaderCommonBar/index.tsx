@@ -2,23 +2,16 @@ import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { observer } from "mobx-react";
 import { useStores } from "@src/store";
-import FeedBack from "../FeedBack";
 import "./index.less";
 
 const menu = [
-  {
-    url: "/",
-    title: "首页",
-  },
-  {
-    url: "/editor",
-    title: "编辑器",
-  },
   {
     url: "/square",
     title: "模板",
   },
 ];
+
+const githubUrl = "https://github.com/xjx954/open-resume";
 
 const HeaderCommonBar = observer(() => {
   const { globalStore } = useStores();
@@ -52,12 +45,14 @@ const HeaderCommonBar = observer(() => {
             );
           })}
           <li className="nav-li">
-            <FeedBack></FeedBack>
+            <a href={githubUrl} target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
           </li>
         </ul>
       </div>
       <Link className="rsC-header__cta" to="/editor">
-        立即开始
+        开始制作
       </Link>
     </div>
   );

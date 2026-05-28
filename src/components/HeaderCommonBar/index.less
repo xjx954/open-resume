@@ -2,7 +2,8 @@
   position: sticky;
   top: 0;
   z-index: 90;
-  width: 100%;
+  width: 100vw;
+  max-width: 100vw;
   min-width: 0;
   height: 64px;
   display: grid;
@@ -66,13 +67,13 @@
 
   &__menu {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     min-width: 0;
 
     ul {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       margin: 0;
       padding: 0;
       list-style: none;
@@ -98,11 +99,11 @@
           align-items: center;
           height: 36px;
           margin: 0;
-          padding: 0 13px;
+          padding: 0 12px;
           border-radius: 9px;
           color: #606978;
           font-size: 14px;
-          font-weight: 700;
+          font-weight: 720;
           transition: color 0.18s ease, background 0.18s ease;
 
           &:hover {
@@ -140,27 +141,24 @@
 
 @media (max-width: 760px) {
   .rsC-header {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     height: auto;
     min-height: 64px;
     padding: 12px 18px;
 
+    &__logo {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
     &__menu {
-      order: 3;
-      grid-column: 1 / -1;
-      justify-content: flex-start;
-      overflow-x: auto;
-      max-width: 100%;
-      padding-bottom: 2px;
+      display: none;
+    }
 
-      ul {
-        min-width: 0;
-
-        .nav-li:last-child {
-          display: none;
-        }
-      }
+    &__cta {
+      display: none;
     }
 
     &__logo {
