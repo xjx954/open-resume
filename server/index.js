@@ -178,22 +178,52 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`PDF server running on http://localhost:${PORT}`);
   console.log(`Endpoint: POST http://localhost:${PORT}/api/pdf`);
 });
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  if (browser) {
-    await browser.close();
+// ── Graceful shutdown ──
+
+async function cleanup() {
+  if (browser && browser.isConnected()) {
+    try {
+      // Close all pages first, then the browser
+      const pages = await browser.pages();
+      await Promise.all(pages.map(p => p.close().catch(() => {})));
+      await browser.close();
+    } catch {
+      // Force disconnect if close fails
+      try { browser.disconnect(); } catch {}
+    }
+    browser = null;
   }
-  process.exit(0);
+}
+
+async function shutdown() {
+  console.log('\nPDF server shutting down...');
+  await cleanup();
+  server.close(() => {
+    process.exit(0);
+  });
+  // Force exit after 3s if server.close hangs
+  setTimeout(() => process.exit(0), 3000);
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+process.on('SIGBREAK', shutdown);
+
+// Clean up browser even on forced exit
+process.on('exit', () => {
+  if (browser) {
+    try { browser.close(); } catch {}
+  }
 });
 
-process.on('SIGINT', async () => {
-  if (browser) {
-    await browser.close();
-  }
-  process.exit(0);
+// Handle uncaught exceptions — don't leave browser running
+process.on('uncaughtException', async (err) => {
+  console.error('Uncaught exception:', err);
+  await cleanup();
+  process.exit(1);
 });
