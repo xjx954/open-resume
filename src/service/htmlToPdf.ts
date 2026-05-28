@@ -11,18 +11,19 @@ export interface PdfParams {
     pages: string
 }
 
-export interface PdfResult {
-    url: string
-}
-
-export async function getPdf(params: PdfParams): Promise<PdfResult> {
+/**
+ * Generate PDF from the backend service.
+ * Returns a Blob URL that can be downloaded directly.
+ */
+export async function generatePdfBlob(params: PdfParams): Promise<string> {
     if (!pdfApiUrl) {
         throw new Error('未配置 PDF 生成服务，请设置 REACT_APP_PDF_API_URL 指向后端代理接口。');
     }
 
-    const res = await axios.post<PdfResult>(pdfApiUrl, params, {
-        timeout: 15 * 1000,
-        withCredentials: true,
+    const res = await axios.post(pdfApiUrl, params, {
+        timeout: 30 * 1000,
+        responseType: 'blob',
     });
-    return res.data;
+
+    return URL.createObjectURL(res.data);
 }

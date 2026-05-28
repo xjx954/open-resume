@@ -22,8 +22,8 @@ import {
 import htmlParser from 'rs-md-html-parser';
 import "./index.less";
 import { getTheme } from "@utils/changeThemes";
-import { downloadDirect, downloadFetch, markdownParserArticle, sanitizeHtml } from "@utils/helper";
-import { getPdf } from "@src/service/htmlToPdf";
+import { downloadDirect, markdownParserArticle, sanitizeHtml } from "@utils/helper";
+import { generatePdfBlob } from "@src/service/htmlToPdf";
 import { useStores } from "@src/store";
 import { updateTemplate, renderViewStyle, renderResumePreviewMode } from "@src/utils/global";
 import { LOCAL_STORE, UPDATE_CONTENT, UPDATE_LOG_VERSION } from '@src/utils/const';
@@ -159,7 +159,7 @@ const HeaderBar = observer(() => {
         try {
           hide();
           const curThemes = themes.filter(item => item.id === theme);
-          await downloadFetch(curThemes[0].defaultUrl, name ? `${name}.pdf` : "resume.pdf");
+          await downloadDirect(curThemes[0].defaultUrl || '', name ? `${name}.pdf` : "resume.pdf");
         } catch (e) {
           hide();
           console.error('Template PDF download failed:', e);
@@ -168,17 +168,19 @@ const HeaderBar = observer(() => {
       }
       const themeColor = getComputedStyle(document.body).getPropertyValue("--bg");
       try {
-        let data = await getPdf({
+        const blobUrl = await generatePdfBlob({
           htmlContent: String(htmlContent),
           theme,
           themeColor,
           isMark,
           isOnePage,
-          pages
+          pages,
         });
-        await downloadFetch(data.url, name ? `${name}.pdf` : "resume.pdf");
+        downloadDirect(blobUrl, name ? `${name}.pdf` : "resume.pdf");
         hide();
-        message.success("恭喜你，导出成功!")
+        message.success("恭喜你，导出成功!");
+        // Clean up blob URL after a short delay
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
       } catch (e: unknown) {
         hide();
         const errMsg = getErrorMessage(e);
