@@ -68,15 +68,15 @@ const Shortcuts: React.FC<Props> = ({ visible: controlledVisible, onClose }) => 
         })}
       </Modal>
       {!isControlled && (
-        <a
+        <button
           className="ant-dropdown-link rs-link"
-          onClick={(e) => {
-            e.preventDefault();
+          type="button"
+          onClick={() => {
             handleOpen();
           }}
         >
           icon快捷键
-        </a>
+        </button>
       )}
     </>
   );

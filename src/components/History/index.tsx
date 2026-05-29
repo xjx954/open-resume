@@ -58,15 +58,15 @@ const History: React.FC<Props> = ({ visible: controlledVisible, onClose }) => {
   return (
     <>
       {!isControlled && (
-        <a
+        <button
           className="ant-dropdown-link rs-link"
-          onClick={(e) => {
-            e.preventDefault();
+          type="button"
+          onClick={() => {
             setInternalVisible(true);
           }}
         >
           历史记录
-        </a>
+        </button>
       )}
       <Modal
         title="历史记录"

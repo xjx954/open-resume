@@ -3,11 +3,23 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const puppeteer = require('puppeteer');
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+
+const VALID_THEMES = ['default', 'blue', 'orange', 'pupple', 'mono', 'green', 'academic-blue'];
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{3,8}$/;
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+  ],
+}));
 app.use(express.json({ limit: '5mb' }));
 
 // Cache loaded theme CSS in memory
@@ -98,10 +110,37 @@ app.post('/api/pdf', async (req, res) => {
     return res.status(400).json({ message: '缺少 htmlContent' });
   }
 
+  // Validate themeColor
+  const validatedColor = themeColor || '#39393a';
+  if (!HEX_COLOR_RE.test(validatedColor)) {
+    return res.status(400).json({ message: 'Invalid themeColor format' });
+  }
+
+  // Validate theme
+  const validatedTheme = VALID_THEMES.includes(theme) ? theme : 'default';
+
+  // Sanitize HTML content
+  const window = new JSDOM('').window;
+  const DOMPurify = createDOMPurify(window);
+  const sanitizedHtml = DOMPurify.sanitize(htmlContent, {
+    ALLOWED_TAGS: [
+      'div', 'span', 'p', 'br', 'hr', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li', 'a', 'img', 'svg', 'path', 'circle', 'rect', 'line',
+      'g', 'defs', 'use', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'strong', 'em', 'b', 'i', 'u', 's', 'code', 'pre', 'blockquote',
+      'section', 'header', 'footer', 'article', 'nav', 'main',
+    ],
+    ALLOWED_ATTR: [
+      'href', 'src', 'alt', 'class', 'id', 'style', 'target', 'rel',
+      'width', 'height', 'viewBox', 'fill', 'd', 'xlink:href', 'aria-hidden',
+      'xmlns', 'version', 'p-id', 'xmlns:xlink', 'data-pages',
+    ],
+  });
+
   const html = buildHtml({
-    htmlContent,
-    theme: theme || 'default',
-    themeColor: themeColor || '#39393a',
+    htmlContent: sanitizedHtml,
+    theme: validatedTheme,
+    themeColor: validatedColor,
   });
 
   let page = null;

@@ -72,6 +72,8 @@ class TemplateStore {
 
   setColor = (color: string) => {
     this.color = color;
+    localStorage.setItem(LOCAL_STORE.MD_COLOR, color);
+    document.body.style.setProperty("--bg", color);
     this.syncPreview();
   };
 

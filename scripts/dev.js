@@ -112,13 +112,29 @@ function start(name, command, args, opts = {}) {
 }
 
 function watch(name, child, command, args, opts) {
-  child.on('close', (code, signal) => {
-    if (signal) return;
-    if (children.length === 0) return;
-    console.log(`${color('yellow', `[${name}]`)} restarting...`);
-    const newChild = start(name, command, args, opts);
-    watch(name, newChild, command, args, opts);
-  });
+  let restarts = 0;
+  const resetTimer = () => {
+    setTimeout(() => { restarts = 0; }, 10000);
+  };
+
+  const attach = (proc) => {
+    proc.on('close', (code, signal) => {
+      if (signal) return;
+      if (children.length === 0) return;
+      restarts++;
+      if (restarts > 3) {
+        console.error(`${color('red', `[${name}]`)} Too many restarts (${restarts}) in quick succession — giving up.`);
+        shutdown();
+        return;
+      }
+      if (restarts === 1) resetTimer();
+      console.log(`${color('yellow', `[${name}]`)} restarting... (attempt ${restarts}/3)`);
+      const newChild = start(name, command, args, opts);
+      attach(newChild);
+    });
+  };
+
+  attach(child);
 }
 
 // ── Ready summary ────────────────────────────────────
@@ -186,10 +202,14 @@ async function main() {
   const pdfFree = await checkPort(PDF_SERVER_PORT);
 
   if (!webFree) {
-    console.log(`${color('yellow', '!')} Port ${FRONTEND_PORT} is in use — frontend may fail`);
+    console.error(`${color('red', 'Error:')} Port ${FRONTEND_PORT} is already in use.`);
+    console.error(`  Please stop the process using port ${FRONTEND_PORT} and try again.`);
+    process.exit(1);
   }
   if (!pdfFree) {
-    console.log(`${color('yellow', '!')} Port ${PDF_SERVER_PORT} is in use — PDF server may fail`);
+    console.error(`${color('red', 'Error:')} Port ${PDF_SERVER_PORT} is already in use.`);
+    console.error(`  Please stop the process using port ${PDF_SERVER_PORT} and try again.`);
+    process.exit(1);
   }
 
   console.log(color('gray', 'Starting services...\n'));

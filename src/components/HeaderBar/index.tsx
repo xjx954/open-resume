@@ -155,17 +155,6 @@ const HeaderBar = observer(() => {
     if (content) {
       const htmlContent = document.querySelector('.rs-view-inner')?.innerHTML.replace(/(\n|\r)/g, "");
       let hide = message.loading("正在为你生成简历...", 0);
-      if (templateStore.editorCount < 2) {
-        try {
-          hide();
-          const curThemes = themes.filter(item => item.id === theme);
-          await downloadDirect(curThemes[0].defaultUrl || '', name ? `${name}.pdf` : "resume.pdf");
-        } catch (e) {
-          hide();
-          console.error('Template PDF download failed:', e);
-        }
-        return;
-      }
       const themeColor = getComputedStyle(document.body).getPropertyValue("--bg");
       try {
         const blobUrl = await generatePdfBlob({

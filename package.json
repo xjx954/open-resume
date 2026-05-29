@@ -157,7 +157,11 @@
     "modulePaths": [],
     "moduleNameMapper": {
       "^react-native$": "react-native-web",
-      "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy"
+      "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
+      "^lodash-es$": "<rootDir>/node_modules/lodash/lodash.js",
+      "^lodash-es/(.*)$": "<rootDir>/node_modules/lodash/$1",
+      "^@src/(.*)$": "<rootDir>/src/$1",
+      "^@utils/(.*)$": "<rootDir>/src/utils/$1"
     },
     "moduleFileExtensions": [
       "web.js",
