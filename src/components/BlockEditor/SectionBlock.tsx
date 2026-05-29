@@ -31,43 +31,40 @@ const SectionBlock: React.FC<Props> = ({ data, onChange }) => {
         <label className="block-label">
           {isH2 ? '模块名称' : '条目标题'}
         </label>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Input
-            value={data.title}
-            placeholder={isH2 ? '如：工作经历' : '如：公司名称 - 前端工程师'}
-            style={{ flex: 1 }}
-            onChange={e => onChange({ ...data, title: e.target.value })}
-          />
+        <Input
+          value={data.title}
+          placeholder={isH2 ? '如：工作经历、教育背景' : '如：公司名称 - 前端工程师'}
+          onChange={e => onChange({ ...data, title: e.target.value })}
+        />
+      </div>
+
+      <div className="block-field-row" style={{ marginBottom: 16 }}>
+        <div className="block-column">
+          <label className="block-label">类型</label>
           <Select
             value={data.level}
-            style={{ width: 76, flexShrink: 0 }}
+            style={{ width: '100%' }}
             onChange={(val: 2 | 3) => onChange({ ...data, level: val, title: data.title })}
             options={[
-              { value: 2, label: '模块' },
-              { value: 3, label: '条目' },
+              { value: 2, label: '模块 (H2)' },
+              { value: 3, label: '条目 (H3)' },
             ]}
           />
         </div>
-      </div>
-
-      <div className="block-field">
-        <label className="block-label">副标题（可选）</label>
-        <Input
-          value={data.subtitle || ''}
-          placeholder={isH2 ? '如：工作经历' : '如：2020 - 至今'}
-          onChange={e => onChange({ ...data, subtitle: e.target.value || undefined })}
-        />
+        <div className="block-column">
+          <label className="block-label">副标题（可选）</label>
+          <Input
+            value={data.subtitle || ''}
+            placeholder={isH2 ? '如：2020 - 至今' : '如：2020.07 - 2022.09'}
+            onChange={e => onChange({ ...data, subtitle: e.target.value || undefined })}
+          />
+        </div>
       </div>
 
       <div className="block-items">
         <label className="block-label">条目内容</label>
         {data.items.length === 0 && (
-          <div style={{
-            padding: '20px 0',
-            textAlign: 'center',
-            color: 'var(--text-tertiary, #9ca3af)',
-            fontSize: '13px',
-          }}>
+          <div className="block-items-empty">
             暂无条目，点击下方按钮添加
           </div>
         )}
@@ -75,7 +72,8 @@ const SectionBlock: React.FC<Props> = ({ data, onChange }) => {
           <div className="block-item-row" key={i}>
             <Select
               value={item.type}
-              style={{ width: 76, flexShrink: 0 }}
+              style={{ width: 70, flexShrink: 0 }}
+              size="small"
               onChange={(val: SectionItem['type']) => updateItem(i, { ...item, type: val })}
               options={[
                 { value: 'bullet', label: '要点' },
@@ -86,7 +84,7 @@ const SectionBlock: React.FC<Props> = ({ data, onChange }) => {
               <Input.TextArea
                 value={item.content}
                 placeholder="段落内容，支持多行文本"
-                autoSize={{ minRows: 2, maxRows: 6 }}
+                autoSize={{ minRows: 2, maxRows: 8 }}
                 style={{ flex: 1 }}
                 onChange={e => updateItem(i, { ...item, content: e.target.value })}
               />

@@ -2,7 +2,7 @@ import { makeAutoObservable } from "mobx";
 import { INIT_COLOR, INIT_CONTENT, LOCAL_STORE, themes } from '@utils/const';
 import { ResumeEditorRef, setHtmlView } from '@src/utils/global';
 import { ResumeBlock } from '@src/types/resume';
-import { blocksToMarkdown, markdownToBlocks } from '@src/utils/blockSerializer';
+import { blocksToMarkdown, markdownToBlocks, sanitizeBlock } from '@src/utils/blockSerializer';
 
 const default_theme = localStorage.getItem(LOCAL_STORE.MD_THEME) || themes[0].id;
 
@@ -13,12 +13,12 @@ function loadBlocks(): ResumeBlock[] {
   const blocksJson = localStorage.getItem(LOCAL_STORE.MD_BLOCKS);
   if (blocksJson) {
     try {
-      return JSON.parse(blocksJson);
+      return (JSON.parse(blocksJson) as ResumeBlock[]).map(sanitizeBlock);
     } catch { /* fall through */ }
   }
   // Parse from Markdown
   const md = localContent || INIT_CONTENT;
-  return markdownToBlocks(md);
+  return markdownToBlocks(md).map(sanitizeBlock);
 }
 
 function persistBlocks(blocks: ResumeBlock[], mdContent: string) {
@@ -84,6 +84,7 @@ class TemplateStore {
 
   setMdContent = (content: string) => {
     this.mdContent = content;
+    this.blocks = this.blocks.map(sanitizeBlock);
     persistBlocks(this.blocks, content);
     this.syncPreview();
   }
@@ -103,7 +104,7 @@ class TemplateStore {
   // ——— Block manipulation ————
 
   setBlocks = (blocks: ResumeBlock[]) => {
-    this.blocks = blocks;
+    this.blocks = blocks.map(sanitizeBlock);
     persistBlocks(blocks, blocksToMarkdown(blocks));
     this.syncPreview();
   }

@@ -6,11 +6,18 @@ interface Props {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onFitWidth: () => void;
+  onZoomPreset: (preset: number) => void;
   onTogglePreview: () => void;
 }
 
 const MIN_ZOOM = 40;
 const MAX_ZOOM = 200;
+
+const ZOOM_PRESETS = [
+  { label: '75%', value: 75 },
+  { label: '100%', value: 100 },
+  { label: '适应', value: -1 },
+];
 
 const EditorToolbar: React.FC<Props> = ({
   zoom,
@@ -18,6 +25,7 @@ const EditorToolbar: React.FC<Props> = ({
   onZoomIn,
   onZoomOut,
   onFitWidth,
+  onZoomPreset,
   onTogglePreview,
 }) => {
   const canZoomIn = zoom < MAX_ZOOM;
@@ -51,16 +59,16 @@ const EditorToolbar: React.FC<Props> = ({
           </svg>
         </button>
         <span className="rs-preview-toolbar__divider" />
-        <button
-          className="rs-preview-toolbar__btn"
-          onClick={onFitWidth}
-          title="适应宽度"
-          aria-label="适应宽度"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-          </svg>
-        </button>
+        {ZOOM_PRESETS.map(p => (
+          <button
+            key={p.value}
+            className={`rs-preview-toolbar__btn rs-preview-toolbar__btn--text ${zoom === p.value ? 'rs-preview-toolbar__btn--active' : ''}`}
+            onClick={() => p.value === -1 ? onFitWidth() : onZoomPreset(p.value)}
+            title={p.label}
+          >
+            {p.label}
+          </button>
+        ))}
       </div>
 
       <div className="rs-preview-toolbar__group">

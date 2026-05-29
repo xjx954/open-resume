@@ -44,13 +44,13 @@ const AddBlockMenu: React.FC = observer(() => {
   const menu = (
     <Menu className="block-add-dropdown">
       <Menu.Item key="header" icon={<UserOutlined />} onClick={() => handleAdd('header')}>
-        基本信息（姓名 + 岗位）
+        基本信息
       </Menu.Item>
       <Menu.Item key="two-column" icon={<IdcardOutlined />} onClick={() => handleAdd('two-column')}>
-        联系与简介
+        联系方式与简介
       </Menu.Item>
       <Menu.Item key="section" icon={<UnorderedListOutlined />} onClick={() => handleAdd('section')}>
-        简历模块（工作经历、技能等）
+        内容模块（工作经历、教育背景等）
       </Menu.Item>
     </Menu>
   );

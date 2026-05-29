@@ -49,7 +49,7 @@ const ColumnEditor: React.FC<ColumnEditorProps> = ({ column, title, onChange }) 
       <div className="block-field">
         <label className="block-label">文本内容</label>
         <Input.TextArea
-          rows={2}
+          autoSize={{ minRows: 2, maxRows: 6 }}
           value={column.text}
           placeholder="一句话描述你的职业优势或核心经验"
           onChange={e => onChange({ ...column, text: e.target.value })}
@@ -68,32 +68,37 @@ const ColumnEditor: React.FC<ColumnEditorProps> = ({ column, title, onChange }) 
         )}
         {column.contacts.map((c, i) => (
           <div className="block-contact-row" key={i}>
-            <Select
-              value={c.icon}
-              style={{ width: 90, flexShrink: 0 }}
-              onChange={val => updateContact(i, { ...c, icon: val })}
-              options={ICON_OPTIONS}
-            />
-            <Input
-              value={c.label}
-              placeholder="显示文本"
-              style={{ flex: 1 }}
-              onChange={e => updateContact(i, { ...c, label: e.target.value })}
-            />
-            <Input
-              value={c.link || ''}
-              placeholder="链接（可选）"
-              style={{ flex: 1 }}
-              onChange={e => updateContact(i, { ...c, link: e.target.value || undefined })}
-            />
-            <button
-              type="button"
-              className="block-contact-row__remove"
-              onClick={() => removeContact(i)}
-              aria-label="删除联系方式"
-            >
-              <CloseOutlined />
-            </button>
+            <div className="block-contact-row__fields">
+              <div className="block-contact-row__top">
+                <Select
+                  value={c.icon}
+                  style={{ width: 90, flexShrink: 0 }}
+                  size="small"
+                  onChange={val => updateContact(i, { ...c, icon: val })}
+                  options={ICON_OPTIONS}
+                />
+                <Input
+                  value={c.label}
+                  placeholder="显示文本"
+                  style={{ flex: 1 }}
+                  onChange={e => updateContact(i, { ...c, label: e.target.value })}
+                />
+                <button
+                  type="button"
+                  className="block-contact-row__remove"
+                  onClick={() => removeContact(i)}
+                  aria-label="删除联系方式"
+                >
+                  <CloseOutlined />
+                </button>
+              </div>
+              <Input
+                value={c.link || ''}
+                placeholder="链接（可选）"
+                className="block-contact-row__link"
+                onChange={e => updateContact(i, { ...c, link: e.target.value || undefined })}
+              />
+            </div>
           </div>
         ))}
         <button type="button" className="block-add-contact" onClick={addContact}>

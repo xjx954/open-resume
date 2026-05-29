@@ -19,6 +19,9 @@ function useQuery() {
 const DEFAULT_ZOOM = 100;
 const ZOOM_STEP = 10;
 const PAPER_WIDTH = 794;
+const SIDEBAR_DEFAULT = 400;
+const SIDEBAR_MIN = 360;
+const SIDEBAR_MAX = 480;
 
 const Main: React.FC = observer(() => {
   const query = useQuery();
@@ -45,6 +48,10 @@ const Main: React.FC = observer(() => {
     setZoom(clamped);
   }, []);
 
+  const handleZoomPreset = useCallback((preset: number) => {
+    setZoom(preset);
+  }, []);
+
   const handleTogglePreview = useCallback(() => {
     const nextPreview = !templateStore.isPreview;
     renderResumePreviewMode(nextPreview, templateStore.color, templateStore.mdContent);
@@ -58,7 +65,7 @@ const Main: React.FC = observer(() => {
 
   return (
     <div className="rs-container">
-      <SplitPane split="vertical" minSize={420}>
+      <SplitPane split="vertical" defaultSize={SIDEBAR_DEFAULT} minSize={SIDEBAR_MIN} maxSize={SIDEBAR_MAX}>
         {isMdMode ? <Editor /> : <BlockEditor />}
         <div className="rs-preview-panel">
           <EditorToolbar
@@ -67,6 +74,7 @@ const Main: React.FC = observer(() => {
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
             onFitWidth={handleFitWidth}
+            onZoomPreset={handleZoomPreset}
             onTogglePreview={handleTogglePreview}
           />
           <div className="rs-view-wrapper" ref={viewWrapperRef}>

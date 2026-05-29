@@ -18,6 +18,64 @@ function generateId(): string {
 }
 
 // ============================================================
+// Data sanitization — strip HTML tags from plain-text fields
+// ============================================================
+
+const HTML_TAG_RE = /<[^>]*>/g;
+
+function sanitizeText(text: string): string {
+  return text.replace(HTML_TAG_RE, '').trim();
+}
+
+function sanitizeHeaderData(data: HeaderData): HeaderData {
+  return {
+    name: sanitizeText(data.name),
+    title: sanitizeText(data.title),
+  };
+}
+
+function sanitizeSectionData(data: SectionData): SectionData {
+  return {
+    ...data,
+    title: sanitizeText(data.title),
+    subtitle: data.subtitle ? sanitizeText(data.subtitle) : undefined,
+    items: data.items.map(item => ({
+      ...item,
+      content: sanitizeText(item.content),
+    })),
+  };
+}
+
+function sanitizeTwoColumnData(data: TwoColumnData): TwoColumnData {
+  const sanitizeColumn = (col: ColumnContent): ColumnContent => ({
+    text: sanitizeText(col.text),
+    contacts: col.contacts.map(c => ({
+      ...c,
+      label: sanitizeText(c.label),
+      link: c.link ? sanitizeText(c.link) : undefined,
+    })),
+  });
+  return {
+    left: sanitizeColumn(data.left),
+    right: sanitizeColumn(data.right),
+  };
+}
+
+/** Strip HTML from all text fields in a block. Safe to call on any data. */
+export function sanitizeBlock(block: ResumeBlock): ResumeBlock {
+  switch (block.type) {
+    case 'header':
+      return { ...block, data: sanitizeHeaderData(block.data as HeaderData) };
+    case 'section':
+      return { ...block, data: sanitizeSectionData(block.data as SectionData) };
+    case 'two-column':
+      return { ...block, data: sanitizeTwoColumnData(block.data as TwoColumnData) };
+    default:
+      return block;
+  }
+}
+
+// ============================================================
 // blocks → Markdown
 // ============================================================
 
@@ -130,8 +188,8 @@ export function markdownToBlocks(md: string): ResumeBlock[] {
             nextIdx++;
           }
           const nextLine = nextIdx < rawLines.length ? rawLines[nextIdx].trim() : '';
-          if (nextLine && !/^#{1,3}\s+/.test(nextLine) && !/^:::/.test(nextLine)) {
-            headerData.title = nextLine;
+          if (nextLine && !/^#{1,3}\s+/.test(nextLine) && !/^:::/.test(nextLine) && isPlainTextLine(nextLine)) {
+            headerData.title = sanitizeText(nextLine);
             i = nextIdx + 1;
           } else {
             i++;
@@ -168,14 +226,20 @@ export function markdownToBlocks(md: string): ResumeBlock[] {
 // ============================================================
 
 function parseHeaderText(text: string): HeaderData {
-  const dashIndex = text.indexOf(' - ');
+  const raw = sanitizeText(text);
+  const dashIndex = raw.indexOf(' - ');
   if (dashIndex !== -1) {
     return {
-      name: text.slice(0, dashIndex).trim(),
-      title: text.slice(dashIndex + 3).trim(),
+      name: sanitizeText(raw.slice(0, dashIndex)),
+      title: sanitizeText(raw.slice(dashIndex + 3)),
     };
   }
-  return { name: text, title: '' };
+  return { name: raw, title: '' };
+}
+
+function isPlainTextLine(line: string): boolean {
+  // Reject lines that contain HTML tags or are markdown link syntax
+  return !HTML_TAG_RE.test(line) && !/!\[.*?\]\(.*?\)/.test(line);
 }
 
 function tryParseTwoColumn(
@@ -266,7 +330,7 @@ function parseSection(
   startIndex: number,
   level: 2 | 3,
 ): { block: ResumeBlock; nextIndex: number } {
-  const title = lines[startIndex].replace(/^#{2,3}\s+/, '').trim();
+  const title = sanitizeText(lines[startIndex].replace(/^#{2,3}\s+/, ''));
   let i = startIndex + 1;
   const items: SectionItem[] = [];
   let subtitle: string | undefined;
@@ -274,7 +338,7 @@ function parseSection(
   let firstContentConsumed = false;
 
   function flushTextBuffer() {
-    const text = textBuffer.join('\n').trim();
+    const text = sanitizeText(textBuffer.join('\n'));
     if (text) {
       items.push({ type: 'text', content: text });
     }
@@ -293,7 +357,7 @@ function parseSection(
     if (/^[-*]\s+/.test(trimmed)) {
       flushTextBuffer();
       firstContentConsumed = true;
-      items.push({ type: 'bullet', content: trimmed.replace(/^[-*]\s+/, '') });
+      items.push({ type: 'bullet', content: sanitizeText(trimmed.replace(/^[-*]\s+/, '')) });
       i++;
       continue;
     }
@@ -302,7 +366,7 @@ function parseSection(
     if (trimmed) {
       // The first non-blank, non-bullet line after an H3 heading is the subtitle
       if (level === 3 && !firstContentConsumed && !subtitle && items.length === 0) {
-        subtitle = trimmed;
+        subtitle = sanitizeText(trimmed);
         firstContentConsumed = true;
       } else {
         textBuffer.push(rawLine);

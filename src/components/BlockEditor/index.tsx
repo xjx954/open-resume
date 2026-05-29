@@ -48,24 +48,73 @@ import './BlockEditor.less';
 // Block type icon mapping
 // ============================================================
 
-const BLOCK_META: Record<ResumeBlock['type'], { icon: React.ReactNode; label: string }> = {
-  'header': { icon: <UserOutlined />, label: '基本信息' },
-  'two-column': { icon: <IdcardOutlined />, label: '联系与简介' },
-  'section': { icon: <UnorderedListOutlined />, label: '简历模块' },
-  'raw-markdown': { icon: <CodeOutlined />, label: '高级内容' },
+const BLOCK_ICON: Record<ResumeBlock['type'], React.ReactNode> = {
+  'header': <UserOutlined />,
+  'two-column': <IdcardOutlined />,
+  'section': <UnorderedListOutlined />,
+  'raw-markdown': <CodeOutlined />,
 };
 
-function getItemCount(block: ResumeBlock): string | null {
+const BLOCK_LABEL: Record<ResumeBlock['type'], string> = {
+  'header': '基本信息',
+  'two-column': '联系方式与简介',
+  'section': '简历模块',
+  'raw-markdown': '高级内容',
+};
+
+function getBlockMeta(block: ResumeBlock): { icon: React.ReactNode; label: string } {
+  const icon = BLOCK_ICON[block.type];
   if (block.type === 'section') {
     const d = block.data as SectionData;
-    const title = d.title || (d.level === 2 ? '新模块' : '新条目');
+    const label = d.title || '自定义模块';
+    return { icon, label };
+  }
+  return { icon, label: BLOCK_LABEL[block.type] };
+}
+
+function getBlockSummary(block: ResumeBlock): string | null {
+  if (block.type === 'header') {
+    const d = block.data as HeaderData;
+    if (d.title) return d.title;
+    if (d.name) return d.name;
+    return null;
+  }
+  if (block.type === 'section') {
+    const d = block.data as SectionData;
     const n = d.items.length;
-    return `${title}（${n}）`;
+    if (n === 0) return '无条目';
+    const parts: string[] = [];
+    if (d.subtitle) parts.push(d.subtitle);
+    parts.push(`${n} 条`);
+    return parts.join(' · ');
   }
   if (block.type === 'two-column') {
     const d = block.data as TwoColumnData;
     const n = d.left.contacts.length + d.right.contacts.length;
-    if (n > 0) return `联系方式（${n}）`;
+    const parts: string[] = [];
+    if (d.left.text) parts.push(d.left.text.slice(0, 30) + (d.left.text.length > 30 ? '…' : ''));
+    if (n > 0) parts.push(`${n} 个联系方式`);
+    return parts.join(' · ') || null;
+  }
+  if (block.type === 'raw-markdown') {
+    const d = block.data as RawMarkdownData;
+    const preview = d.markdown.replace(/\n/g, ' ').slice(0, 40);
+    return preview || null;
+  }
+  return null;
+}
+
+function getItemCountBadge(block: ResumeBlock): string | null {
+  if (block.type === 'section') {
+    const d = block.data as SectionData;
+    const n = d.items.length;
+    if (n > 0) return `${n} 条`;
+    return null;
+  }
+  if (block.type === 'two-column') {
+    const d = block.data as TwoColumnData;
+    const n = d.left.contacts.length + d.right.contacts.length;
+    if (n > 0) return `${n}`;
     return null;
   }
   return null;
@@ -119,8 +168,9 @@ const SortableBlock: React.FC<SortableBlockProps> = ({
     opacity: isDragging ? 0.4 : 1,
   };
 
-  const meta = BLOCK_META[block.type];
-  const itemCount = getItemCount(block);
+  const meta = getBlockMeta(block);
+  const summary = getBlockSummary(block);
+  const badge = getItemCountBadge(block);
 
   const contextMenu = (
     <Menu className="block-context-menu">
@@ -164,7 +214,7 @@ const SortableBlock: React.FC<SortableBlockProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`block-card ${isDragging ? 'block-card--dragging' : ''}`}
+      className={`block-card ${isDragging ? 'block-card--dragging' : ''} ${collapsed ? 'block-card--collapsed' : 'block-card--expanded'}`}
     >
       {/* Title row */}
       <div className="block-card-title" onClick={onToggleCollapse}>
@@ -172,9 +222,14 @@ const SortableBlock: React.FC<SortableBlockProps> = ({
           <DragOutlined />
         </span>
         <span className="block-card-title__icon">{meta.icon}</span>
-        <span className="block-card-title__label">{meta.label}</span>
-        {itemCount != null && (
-          <span className="block-card-title__count">{itemCount}</span>
+        <div className="block-card-title__text">
+          <span className="block-card-title__label">{meta.label}</span>
+          {summary && collapsed && (
+            <span className="block-card-title__summary">{summary}</span>
+          )}
+        </div>
+        {badge != null && (
+          <span className="block-card-title__badge">{badge}</span>
         )}
         <span className={`block-card-title__chevron ${collapsed ? 'block-card-title__chevron--collapsed' : ''}`}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -233,7 +288,7 @@ const SortableBlock: React.FC<SortableBlockProps> = ({
 // ============================================================
 
 const DragOverlayCard: React.FC<{ block: ResumeBlock }> = ({ block }) => {
-  const meta = BLOCK_META[block.type];
+  const meta = getBlockMeta(block);
   return (
     <div className="block-card block-card--overlay" style={{ width: 360 }}>
       <div className="block-card-title">
@@ -242,6 +297,11 @@ const DragOverlayCard: React.FC<{ block: ResumeBlock }> = ({ block }) => {
         </span>
         <span className="block-card-title__icon">{meta.icon}</span>
         <span className="block-card-title__label">{meta.label}</span>
+        <span className={`block-card-title__chevron`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </span>
       </div>
     </div>
   );
@@ -256,25 +316,21 @@ const BlockEditor: React.FC = observer(() => {
   const { blocks, removeBlock, updateBlock, reorderBlocks, addBlock } = templateStore;
   const blockIds = blocks.map(b => b.id);
 
-  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => {
-    // Default: keep header expanded, collapse all other blocks
-    return new Set(blocks.filter(b => b.type !== 'header').map(b => b.id));
+  // Single expanded block (accordion). null = all collapsed (except header).
+  const [expandedId, setExpandedId] = useState<string | null>(() => {
+    // Default: header is expanded, all others collapsed
+    const header = blocks.find(b => b.type === 'header');
+    return header ? header.id : null;
   });
-  // Track blocks the user has manually toggled — don't auto-collapse these
   const userToggledRef = useRef<Set<string>>(new Set());
 
-  // When blocks change (template switch, history restore, AI replace),
-  // auto-collapse newly appeared non-header blocks
+  // When blocks change, ensure at most one non-header block is expanded
   useEffect(() => {
-    setCollapsedIds(prev => {
-      const next = new Set(prev);
-      for (const block of blocks) {
-        const id = block.id;
-        if (block.type !== 'header' && !prev.has(id) && !userToggledRef.current.has(id)) {
-          next.add(id);
-        }
-      }
-      return next;
+    setExpandedId(prev => {
+      if (prev && blocks.some(b => b.id === prev)) return prev;
+      // If previously expanded block was removed, expand header
+      const header = blocks.find(b => b.type === 'header');
+      return header ? header.id : null;
     });
   }, [blocks]);
 
@@ -288,15 +344,7 @@ const BlockEditor: React.FC = observer(() => {
 
   const toggleCollapse = useCallback((id: string) => {
     userToggledRef.current.add(id);
-    setCollapsedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
+    setExpandedId(prev => (prev === id ? null : id));
   }, []);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -350,7 +398,7 @@ const BlockEditor: React.FC = observer(() => {
               block={block}
               index={index}
               total={blocks.length}
-              collapsed={collapsedIds.has(block.id)}
+              collapsed={expandedId !== block.id}
               onToggleCollapse={() => toggleCollapse(block.id)}
               onUpdate={updateBlock}
               onRemove={removeBlock}
