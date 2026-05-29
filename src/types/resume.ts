@@ -25,11 +25,19 @@ export interface ContactItem {
   link?: string;
 }
 
-export interface SectionData {
-  level: 2 | 3;
+export interface SectionEntry {
+  id: string;
   title: string;
   subtitle?: string;
   items: SectionItem[];
+}
+
+export interface SectionData {
+  level: 2;
+  title: string;
+  subtitle?: string;
+  items: SectionItem[];
+  entries: SectionEntry[];
 }
 
 export interface SectionItem {

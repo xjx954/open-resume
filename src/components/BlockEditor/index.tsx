@@ -81,11 +81,13 @@ function getBlockSummary(block: ResumeBlock): string | null {
   }
   if (block.type === 'section') {
     const d = block.data as SectionData;
-    const n = d.items.length;
-    if (n === 0) return '无条目';
+    const entryCount = (d.entries || []).length;
+    const itemCount = d.items.length;
+    if (entryCount === 0 && itemCount === 0) return '无条目';
     const parts: string[] = [];
     if (d.subtitle) parts.push(d.subtitle);
-    parts.push(`${n} 条`);
+    if (entryCount > 0) parts.push(`${entryCount} 个子条目`);
+    if (itemCount > 0) parts.push(`${itemCount} 条`);
     return parts.join(' · ');
   }
   if (block.type === 'two-column') {
@@ -107,8 +109,10 @@ function getBlockSummary(block: ResumeBlock): string | null {
 function getItemCountBadge(block: ResumeBlock): string | null {
   if (block.type === 'section') {
     const d = block.data as SectionData;
-    const n = d.items.length;
-    if (n > 0) return `${n} 条`;
+    const n = (d.entries || []).length;
+    if (n > 0) return `${n} 个`;
+    const m = d.items.length;
+    if (m > 0) return `${m} 条`;
     return null;
   }
   if (block.type === 'two-column') {

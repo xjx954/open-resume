@@ -25,10 +25,10 @@ function createBlock(type: ResumeBlock['type']): ResumeBlock {
     case 'section':
       return {
         id, type: 'section',
-        data: { level: 2, title: '', items: [] } as SectionData,
+        data: { level: 2, title: '', items: [], entries: [] } as SectionData,
       };
     default:
-      return { id, type: 'section', data: { level: 2, title: '', items: [] } as SectionData };
+      return { id, type: 'section', data: { level: 2, title: '', items: [], entries: [] } as SectionData };
   }
 }
 

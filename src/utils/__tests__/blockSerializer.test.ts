@@ -56,32 +56,41 @@ describe('blockToMarkdown', () => {
       id: '1',
       type: 'section',
       data: {
-        level: 2,
+        level: 2 as const,
         title: '个人优势',
         items: [
-          { type: 'bullet', content: '熟练掌握 React' },
-          { type: 'bullet', content: '良好的团队协作' },
+          { type: 'bullet' as const, content: '熟练掌握 React' },
+          { type: 'bullet' as const, content: '良好的团队协作' },
         ],
+        entries: [],
       } as SectionData,
     };
     const md = blockToMarkdown(block);
     expect(md).toBe('## 个人优势\n\n- 熟练掌握 React\n- 良好的团队协作');
   });
 
-  it('serializes section block with subtitle', () => {
+  it('serializes section block with entries', () => {
     const block: ResumeBlock = {
       id: '1',
       type: 'section',
       data: {
-        level: 3,
-        title: '某科技公司 - 前端工程师',
-        subtitle: '2020-至今',
-        items: [
-          { type: 'bullet', content: '负责核心业务开发' },
+        level: 2 as const,
+        title: '工作经历',
+        items: [],
+        entries: [
+          {
+            id: 'e1',
+            title: '某科技公司 - 前端工程师',
+            subtitle: '2020-至今',
+            items: [
+              { type: 'bullet' as const, content: '负责核心业务开发' },
+            ],
+          },
         ],
       } as SectionData,
     };
     const md = blockToMarkdown(block);
+    expect(md).toContain('## 工作经历');
     expect(md).toContain('### 某科技公司 - 前端工程师');
     expect(md).toContain('2020-至今');
     expect(md).toContain('- 负责核心业务开发');
@@ -216,7 +225,7 @@ describe('markdownToBlocks — sections', () => {
     expect(data.items[1]).toEqual({ type: 'bullet', content: '良好的团队协作能力' });
   });
 
-  it('parses H3 with subtitle and bullet items', () => {
+  it('wraps standalone H3 as section with entry', () => {
     const md = [
       '### 某科技公司 - 前端工程师',
       '2020-至今',
@@ -230,10 +239,39 @@ describe('markdownToBlocks — sections', () => {
     expect(blocks[0].type).toBe('section');
 
     const data = blocks[0].data as SectionData;
-    expect(data.level).toBe(3);
+    expect(data.level).toBe(2);
     expect(data.title).toBe('某科技公司 - 前端工程师');
-    expect(data.subtitle).toBe('2020-至今');
-    expect(data.items).toHaveLength(2);
+    expect(data.entries).toHaveLength(1);
+    expect(data.entries[0].title).toBe('某科技公司 - 前端工程师');
+    expect(data.entries[0].subtitle).toBe('2020-至今');
+    expect(data.entries[0].items).toHaveLength(2);
+  });
+
+  it('parses H2 with nested H3 entries', () => {
+    const md = [
+      '## 工作经历',
+      '',
+      '### 公司A - 前端（2020-至今）',
+      '',
+      '- 负责核心业务',
+      '',
+      '### 公司B - 实习生（2019-2020）',
+      '',
+      '- 参与项目迭代',
+    ].join('\n');
+
+    const blocks = markdownToBlocks(md);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe('section');
+
+    const data = blocks[0].data as SectionData;
+    expect(data.level).toBe(2);
+    expect(data.title).toBe('工作经历');
+    expect(data.entries).toHaveLength(2);
+    expect(data.entries[0].title).toBe('公司A - 前端（2020-至今）');
+    expect(data.entries[0].items).toHaveLength(1);
+    expect(data.entries[1].title).toBe('公司B - 实习生（2019-2020）');
+    expect(data.entries[1].items).toHaveLength(1);
   });
 
   it('parses consecutive sections', () => {
@@ -323,12 +361,28 @@ describe('round-trip: markdown → blocks → markdown', () => {
     const types = blocks.map(b => b.type);
     expect(types).toContain('header');
     expect(types).toContain('two-column');
-    expect(types.filter(t => t === 'section').length).toBeGreaterThanOrEqual(3);
+
+    // work-history section should exist and contain 2 entries
+    const workSection = blocks.find(
+      b => b.type === 'section' && (b.data as SectionData).title === '工作经历',
+    );
+    expect(workSection).toBeDefined();
+    const workData = workSection!.data as SectionData;
+    expect(workData.entries).toHaveLength(2);
+    expect(workData.entries[0].title).toBe('公司A - 前端工程师（2020-至今）');
+    expect(workData.entries[1].title).toBe('公司B - 前端实习生（2019-2020）');
 
     // Re-parse round-tripped output
     const blocks2 = markdownToBlocks(roundTripped);
     // Same number of blocks
     expect(blocks2.length).toBe(blocks.length);
+
+    // Verify round-trip preserves entries
+    const workSection2 = blocks2.find(
+      b => b.type === 'section' && (b.data as SectionData).title === '工作经历',
+    );
+    expect(workSection2).toBeDefined();
+    expect((workSection2!.data as SectionData).entries).toHaveLength(2);
   });
 
   it('preserves raw-markdown content after round-trip', () => {

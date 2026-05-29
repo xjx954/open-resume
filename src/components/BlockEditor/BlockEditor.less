@@ -598,6 +598,133 @@
   }
 }
 
+// —— Entries (sub-items within a section) ——
+
+.block-entries {
+  margin-top: 20px;
+}
+
+.block-entries__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+
+  .block-label {
+    margin-bottom: 0;
+  }
+}
+
+.block-entries__count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent, #2563eb);
+  background: var(--accent-soft, #eff6ff);
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+
+.block-entry-card {
+  border: 1px solid var(--border-light, #eef0f2);
+  border-radius: var(--radius-md, 10px);
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color var(--transition-fast, 0.15s);
+
+  &:hover {
+    border-color: var(--border-default, #e5e7eb);
+  }
+}
+
+.block-entry-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition-fast, 0.1s);
+
+  &:hover {
+    background: var(--hover-bg, #f9fafb);
+  }
+}
+
+.block-entry-card__chevron {
+  color: var(--text-tertiary, #9ca3af);
+  font-size: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.block-entry-card__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.block-entry-card__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #1a1d26);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.block-entry-card__subtitle {
+  font-size: 11px;
+  color: var(--text-tertiary, #9ca3af);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.block-entry-card__count {
+  font-size: 11px;
+  color: var(--text-tertiary, #9ca3af);
+  flex-shrink: 0;
+}
+
+.block-entry-card__remove {
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-tertiary, #9ca3af);
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+  transition: opacity var(--transition-fast, 0.15s);
+
+  &:hover {
+    background: #fef2f2;
+    color: #ef4444;
+  }
+}
+
+.block-entry-card:hover .block-entry-card__remove {
+  opacity: 1;
+}
+
+.block-entry-card__body {
+  padding: 0 12px 12px;
+}
+
+.block-entry-card__divider {
+  height: 1px;
+  background: var(--border-light, #eef0f2);
+  margin-bottom: 12px;
+}
+
 // —— Raw markdown notice ——
 
 .block-raw-notice {

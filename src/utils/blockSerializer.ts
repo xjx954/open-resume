@@ -3,6 +3,7 @@ import {
   HeaderData,
   TwoColumnData,
   SectionData,
+  SectionEntry,
   SectionItem,
   RawMarkdownData,
   ContactItem,
@@ -35,13 +36,18 @@ function sanitizeHeaderData(data: HeaderData): HeaderData {
 }
 
 function sanitizeSectionData(data: SectionData): SectionData {
+  const sanitizeItems = (items: SectionItem[]) =>
+    items.map(item => ({ ...item, content: sanitizeText(item.content) }));
   return {
     ...data,
     title: sanitizeText(data.title),
     subtitle: data.subtitle ? sanitizeText(data.subtitle) : undefined,
-    items: data.items.map(item => ({
-      ...item,
-      content: sanitizeText(item.content),
+    items: sanitizeItems(data.items),
+    entries: (data.entries || []).map(entry => ({
+      ...entry,
+      title: sanitizeText(entry.title),
+      subtitle: entry.subtitle ? sanitizeText(entry.subtitle) : undefined,
+      items: sanitizeItems(entry.items),
     })),
   };
 }
@@ -96,11 +102,11 @@ export function blockToMarkdown(block: ResumeBlock): string {
     }
     case 'section': {
       const d = block.data as SectionData;
-      const prefix = '#'.repeat(d.level);
-      const lines: string[] = [`${prefix} ${d.title}`];
+      const lines: string[] = [`## ${d.title}`];
       if (d.subtitle) {
         lines.push('', d.subtitle);
       }
+      // Top-level items (for sections like "技能" without entries)
       if (d.items.length > 0) {
         lines.push('');
         for (const item of d.items) {
@@ -108,6 +114,23 @@ export function blockToMarkdown(block: ResumeBlock): string {
             lines.push(`- ${item.content}`);
           } else {
             lines.push(item.content);
+          }
+        }
+      }
+      // Entries (H3 children)
+      for (const entry of (d.entries || [])) {
+        lines.push('', `### ${entry.title}`);
+        if (entry.subtitle) {
+          lines.push('', entry.subtitle);
+        }
+        if (entry.items.length > 0) {
+          lines.push('');
+          for (const item of entry.items) {
+            if (item.type === 'bullet') {
+              lines.push(`- ${item.content}`);
+            } else {
+              lines.push(item.content);
+            }
           }
         }
       }
@@ -205,11 +228,30 @@ export function markdownToBlocks(md: string): ResumeBlock[] {
         continue;
       }
 
-      // H2 or H3
-      const sectionResult = parseSection(rawLines, i, level as 2 | 3);
-      blocks.push(sectionResult.block);
-      i = sectionResult.nextIndex;
-      continue;
+      // H2 — parse as section with optional H3 entries
+      if (level === 2) {
+        const sectionResult = parseSectionWithEntries(rawLines, i);
+        blocks.push(sectionResult.block);
+        i = sectionResult.nextIndex;
+        continue;
+      }
+
+      // H3 at top level (no parent H2) — wrap in a section
+      if (level === 3) {
+        const entryResult = parseEntry(rawLines, i);
+        blocks.push({
+          id: generateId(),
+          type: 'section',
+          data: {
+            level: 2,
+            title: text,
+            items: [],
+            entries: [entryResult.entry],
+          } as SectionData,
+        });
+        i = entryResult.nextIndex;
+        continue;
+      }
     }
 
     // Unrecognized → raw-markdown
@@ -325,68 +367,145 @@ function parseColumnContent(text: string): ColumnContent {
   return { text: textParts.join('\n').trim(), contacts };
 }
 
-function parseSection(
+// Parse items (bullets and text) belonging to the current scope.
+// Stops at next heading or `:::` block boundary. Returns items + next index.
+function collectItems(
   lines: string[],
   startIndex: number,
-  level: 2 | 3,
-): { block: ResumeBlock; nextIndex: number } {
-  const title = sanitizeText(lines[startIndex].replace(/^#{2,3}\s+/, ''));
-  let i = startIndex + 1;
+): { items: SectionItem[]; nextIndex: number } {
+  let i = startIndex;
   const items: SectionItem[] = [];
-  let subtitle: string | undefined;
   const textBuffer: string[] = [];
-  let firstContentConsumed = false;
 
-  function flushTextBuffer() {
+  function flush() {
     const text = sanitizeText(textBuffer.join('\n'));
-    if (text) {
-      items.push({ type: 'text', content: text });
-    }
+    if (text) items.push({ type: 'text', content: text });
     textBuffer.length = 0;
   }
 
   while (i < lines.length) {
-    const rawLine = lines[i];
-    const trimmed = rawLine.trim();
+    const trimmed = lines[i].trim();
 
-    // Block terminators
     if (/^:::\s*(left|right)\s*$/i.test(trimmed)) break;
     if (/^#{1,3}\s+/.test(trimmed)) break;
 
-    // Bullet line
     if (/^[-*]\s+/.test(trimmed)) {
-      flushTextBuffer();
-      firstContentConsumed = true;
+      flush();
       items.push({ type: 'bullet', content: sanitizeText(trimmed.replace(/^[-*]\s+/, '')) });
       i++;
       continue;
     }
 
-    // Non-blank content line
     if (trimmed) {
-      // The first non-blank, non-bullet line after an H3 heading is the subtitle
-      if (level === 3 && !firstContentConsumed && !subtitle && items.length === 0) {
-        subtitle = sanitizeText(trimmed);
-        firstContentConsumed = true;
-      } else {
-        textBuffer.push(rawLine);
-        firstContentConsumed = true;
-      }
+      textBuffer.push(lines[i]);
     } else {
-      // Blank line: flush accumulated text
-      flushTextBuffer();
+      flush();
     }
-
     i++;
   }
+  flush();
+  return { items, nextIndex: i };
+}
 
-  flushTextBuffer();
+// Parse a single H3 entry: title, optional subtitle, and items.
+function parseEntry(
+  lines: string[],
+  startIndex: number,
+): { entry: SectionEntry; nextIndex: number } {
+  const title = sanitizeText(lines[startIndex].replace(/^###\s+/, ''));
+  let i = startIndex + 1;
+  let subtitle: string | undefined;
+
+  // Skip blank lines
+  while (i < lines.length && !lines[i].trim()) i++;
+
+  // Peek: if the next non-blank line is not a bullet/heading/block boundary, it's a subtitle
+  if (i < lines.length) {
+    const trimmed = lines[i].trim();
+    if (
+      !/^#{1,3}\s+/.test(trimmed) &&
+      !/^[-*]\s+/.test(trimmed) &&
+      !/^:::\s*(left|right)\s*$/i.test(trimmed)
+    ) {
+      subtitle = sanitizeText(trimmed);
+      i++;
+    }
+  }
+
+  const { items, nextIndex } = collectItems(lines, i);
+
+  return {
+    entry: { id: generateId(), title, subtitle, items },
+    nextIndex,
+  };
+}
+
+// Parse an H2 section together with its H3 children as entries.
+function parseSectionWithEntries(
+  lines: string[],
+  startIndex: number,
+): { block: ResumeBlock; nextIndex: number } {
+  const title = sanitizeText(lines[startIndex].replace(/^##\s+/, ''));
+  let i = startIndex + 1;
+  let subtitle: string | undefined;
+
+  // Skip blank lines
+  while (i < lines.length && !lines[i].trim()) i++;
+
+  // Peek: if the next non-blank, non-heading line is not a bullet or block boundary,
+  // and the following content contains an H3, it's likely a subtitle.
+  // Otherwise treat as the first content.
+  if (i < lines.length) {
+    const trimmed = lines[i].trim();
+    if (
+      !/^#{1,3}\s+/.test(trimmed) &&
+      !/^[-*]\s+/.test(trimmed) &&
+      !/^:::\s*(left|right)\s*$/i.test(trimmed)
+    ) {
+      // Check ahead: if there's an H3 before the next H2, this line is a subtitle
+      let peek = i + 1;
+      let foundH3 = false;
+      while (peek < lines.length) {
+        const t = lines[peek].trim();
+        if (/^##\s+/.test(t)) break;
+        if (/^###\s+/.test(t)) { foundH3 = true; break; }
+        peek++;
+      }
+      if (foundH3) {
+        subtitle = sanitizeText(trimmed);
+        i++;
+      }
+    }
+  }
+
+  // Collect top-level items (stop at H3 or H2)
+  const { items, nextIndex: afterItems } = collectItems(lines, i);
+  i = afterItems;
+
+  // Collect H3 entries (stop at H2 or EOF)
+  const entries: SectionEntry[] = [];
+  while (i < lines.length) {
+    const trimmed = lines[i].trim();
+    if (/^##\s+/.test(trimmed)) break;
+    if (/^:::\s*(left|right)\s*$/i.test(trimmed)) break;
+
+    if (/^###\s+/.test(trimmed)) {
+      const result = parseEntry(lines, i);
+      entries.push(result.entry);
+      i = result.nextIndex;
+      continue;
+    }
+
+    // Non-heading content between entries: skip or collect as raw text
+    // (this handles stray text between H3 blocks)
+    i++;
+  }
 
   return {
     block: {
       id: generateId(),
       type: 'section',
-      data: { level, title, subtitle, items } as SectionData,
+      data: { level: 2, title, subtitle, items, entries } as SectionData,
     },
     nextIndex: i,
   };

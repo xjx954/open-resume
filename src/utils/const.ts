@@ -65,7 +65,7 @@ export const LOCAL_STORE = {
   MD_THEME_LIST: "md-theme-list",
   MD_UPDATE_LOG: "md-update-log",
   MD_HISTORY: "md-history",
-  MD_BLOCKS: "md-blocks",
+  MD_BLOCKS: "md-blocks-v2",
 };
 
 export const INIT_COLOR =
