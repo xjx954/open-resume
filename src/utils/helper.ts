@@ -38,10 +38,8 @@ markdownParserResume
     .use(MdContainer, 'right', {
         render: function (tokens: MarkdownToken[], idx: number) {
             if (tokens[idx].nesting === 1) {
-                // opening tag
                 return '<div class="right">';
             } else {
-                // closing tag
                 return '</div></div>';
             }
         }
@@ -49,6 +47,64 @@ markdownParserResume
     })
     .use(MdContainer, 'title')
     .use(MdNContainer)
+
+// ── Custom heading renderers: unified entry-header layout ──
+
+markdownParserResume.renderer.rules.heading_open = function (tokens, idx, options, env, self) {
+    const token = tokens[idx];
+
+    if (token.tag === 'h2') {
+        token.attrJoin('class', 'resume-section-title');
+    }
+
+    if (token.tag === 'h3') {
+        const inlineToken = tokens[idx + 1];
+        if (inlineToken && inlineToken.type === 'inline') {
+            const text = inlineToken.content;
+            const dateMatch = text.match(/[（(]([^）)]+)[）)]\s*$/);
+            if (dateMatch) {
+                (env as any)._h3date = dateMatch[1];
+                inlineToken.content = text
+                    .replace(/[（(][^）)]+[）)]\s*$/, '')
+                    .replace(/\s*[-—–]\s*$/, '')
+                    .trim();
+                if (inlineToken.children) {
+                    for (let c = inlineToken.children.length - 1; c >= 0; c--) {
+                        const child = inlineToken.children[c];
+                        if (child.type === 'text') {
+                            child.content = (child.content || '')
+                                .replace(/[（(][^）)]+[）)]\s*$/, '')
+                                .replace(/\s*[-—–]\s*$/, '')
+                                .trim();
+                            break;
+                        }
+                    }
+                }
+                token.attrJoin('class', 'entry-title');
+                return '<div class="entry-header"><h3 class="entry-title">';
+            }
+        }
+        token.attrJoin('class', 'entry-title');
+        return '<h3 class="entry-title">';
+    }
+
+    return self.renderToken(tokens, idx, options);
+};
+
+markdownParserResume.renderer.rules.heading_close = function (tokens, idx, options, env, self) {
+    const token = tokens[idx];
+
+    if (token.tag === 'h3') {
+        const date = (env as any)._h3date;
+        delete (env as any)._h3date;
+        if (date) {
+            return `<span class="entry-date">${date}</span></div></h3>`;
+        }
+        return '</h3>';
+    }
+
+    return self.renderToken(tokens, idx, options);
+};
 
 export function downloadDirect(url: string, name: string) {
     const aTag = document.createElement('a');

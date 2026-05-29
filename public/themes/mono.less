@@ -1,92 +1,61 @@
 @import "./common/global.less";
 
+// ── Mono theme: 黑白专业 ──
+
 .rs-view {
-  width: 100%;
   background: #fff;
-  color: #202124;
   padding: 24px 0 28px;
 
-  .lr-container {
-    padding: 12px 0 18px;
-    display: flex;
+  h1 {
+    font-size: 30px;
+    color: #111;
+    border-bottom: 3px solid var(--bg);
+    margin-bottom: 12px;
+    padding-bottom: 14px;
   }
 
-  .block::before,
-  .block::after,
-  .right::after {
-    display: block;
-    content: "";
-    height: 0;
-    clear: both;
+  .h1_block {
+    padding: 0 0 20px;
   }
+
+  .lr-container {
+    padding-top: 12px;
+    padding-bottom: 18px;
+  }
+
+  .resume-section-title,
+  h2 {
+    color: var(--bg);
+    border-bottom: 1px solid #cfcfcf;
+    margin-top: 22px;
+    margin-bottom: 8px;
+  }
+
+  .entry-title,
+  h3 {
+    color: #222;
+  }
+
+  p { color: #4b4b4b; }
+
+  ul li,
+  ol li {
+    color: #4b4b4b;
+  }
+
+  a {
+    color: #333;
+    &:hover,
+    &:active { color: var(--bg); }
+  }
+
+  .icon { fill: #333; }
+
+  .entry-date { color: #888; }
 
   .title {
     margin: 10px 50px 0;
     padding-bottom: 10px;
     border-bottom: 1px solid #d9d9d9;
-  }
-
-  h1 {
-    margin: 0 50px 12px;
-    padding-bottom: 14px;
-    color: #111;
-    font-size: 30px;
-    line-height: 1.35;
-    border-bottom: 3px solid var(--bg);
-  }
-
-  h2 {
-    margin: 22px 50px 8px;
-    padding: 0 0 6px;
-    color: var(--bg);
-    font-size: 17px;
-    letter-spacing: 0;
-    border-bottom: 1px solid #cfcfcf;
-  }
-
-  h3 {
-    margin: 12px 50px 4px;
-    color: #222;
-    font-size: 14px;
-    line-height: 1.8;
-  }
-
-  p {
-    margin: 0 50px;
-    color: #4b4b4b;
-    font-size: 13px;
-    line-height: 1.72;
-  }
-
-  ul {
-    margin: 0 50px;
-  }
-
-  li {
-    margin-top: 7px;
-    color: #4b4b4b;
-    font-size: 13px;
-    line-height: 1.65;
-  }
-
-  a {
-    color: #333;
-    text-decoration: none;
-  }
-
-  a:hover,
-  a:active {
-    color: var(--bg);
-    text-decoration: none;
-    outline: 0;
-  }
-
-  a:focus {
-    text-decoration: none;
-    outline: 0;
-  }
-
-  .icon {
-    fill: #333;
   }
 }

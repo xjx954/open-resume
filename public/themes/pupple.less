@@ -1,40 +1,49 @@
 @import "./common/global.less";
 
+// ── Pupple theme: 全彩深色风 ──
+
 .rs-view {
-  width: 100%;
+  background: #fff;
   display: flex;
   flex-direction: column;
-  background: #fff;
-  position: relative;
-  z-index: 2;
-  // border: 2px solid #fdefef;
-  -webkit-text-size-adjust: none;
-
-  &::before {
-    width: 300px;
-    height: 300px;
-    content: "";
-    position: absolute;
-    right: 0;
-    z-index: 1;
-    opacity: 0.1;
-  }
-
-  &::after {
-    width: 200px;
-    height: 200px;
-    content: "";
-    position: absolute;
-    left: -47px;
-    bottom: 43px;
-    transform: rotate(30deg);
-    z-index: 1;
-    opacity: 0.1;
-  }
 
   .lr-container {
-    padding: 20px 0;
-    display: flex;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .h1_block {
+    padding-top: 0;
+    padding-bottom: 0;
+    color: #fff;
+    background: var(--bg);
+  }
+
+  h1 {
+    font-size: 28px;
+    color: #fff;
+    padding: 30px 0;
+  }
+
+  .resume-section-title,
+  h2 {
+    display: inline-block;
+    color: #fff;
+    border-bottom: 3px solid #ffcab0;
+    padding: 4px 10px;
+    margin-bottom: 6px;
+  }
+
+  .entry-title,
+  h3 {
+    color: #fff;
+  }
+
+  p { color: #fff; }
+
+  ul li,
+  ol li {
+    color: #fff;
   }
 
   .h2_block,
@@ -44,12 +53,15 @@
     color: #fff;
   }
 
-  .block::before {
-    display: block;
-    content: "";
-    height: 0;
-    clear: both;
+  a {
+    color: #fff;
+    &:hover,
+    &:active { color: #d1d0d0; }
   }
+
+  .icon { fill: #fff; }
+
+  .entry-date { color: rgba(255, 255, 255, 0.75); }
 
   .title {
     margin-top: 10px;
@@ -57,103 +69,5 @@
     margin-right: 50px;
     padding-bottom: 10px;
     border-bottom: 1px solid #ddd;
-  }
-
-  .h1_block {
-    margin-top: 0;
-    color: #fff;
-    position: relative;
-    background: var(--bg);
-  }
-
-  .right::after {
-    display: block;
-    content: "";
-    height: 0;
-    clear: both;
-  }
-
-  p {
-    // margin-top: 8px;
-    margin-bottom: 0px;
-    margin-left: 50px;
-    margin-right: 50px;
-    font-size: 14px;
-    color: #fff;
-  }
-
-  h1 {
-    font-size: 28px;
-    margin: 0;
-    padding: 30px 0;
-    margin: 0 50px;
-    color: #fff;
-  }
-  .h2_block {
-    position: relative;
-    padding: 20px 0;
-  }
-
-  h2 {
-    position: relative;
-    z-index: 1;
-    display: inline-block;
-    margin: 0px 50px;
-    padding: 4px 10px;
-    font-size: 16px;
-    text-align: left;
-    color: #fff;
-    border-bottom: 3px solid #ffcab0;
-  }
-
-  h3 {
-    position: relative;
-    padding: 10px 0 5px;
-    line-height: 20px;
-    overflow: hidden;
-    margin-left: 50px;
-    margin-right: 50px;
-    color: #fff;
-    font-size: 14px;
-  }
-
-  ul {
-    margin: 0 50px;
-  }
-
-  li {
-    font-size: 13px;
-    margin-top: 8px;
-  }
-
-  a {
-    color: #fff;
-    text-decoration: none;
-    background-color: transparent;
-    outline: none;
-    cursor: pointer;
-    -webkit-transition: color 0.3s;
-    transition: color 0.3s;
-    -webkit-text-decoration-skip: objects;
-  }
-  a:hover {
-    color: rgb(209, 208, 208);
-  }
-  a:active {
-    color: rgb(209, 208, 208);
-  }
-  a:active,
-  a:hover {
-    text-decoration: none;
-    outline: 0;
-  }
-  a:focus {
-    text-decoration: none;
-    outline: 0;
-  }
-  a[disabled] {
-    color: rgba(255, 255, 255, 0.25);
-    cursor: not-allowed;
-    pointer-events: none;
   }
 }

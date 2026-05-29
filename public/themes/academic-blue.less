@@ -1,7 +1,8 @@
 @import "./common/global.less";
 
+// ── Academic Blue theme: 蓝线校招（带照片位） ──
+
 .rs-view {
-  width: 100%;
   min-height: 1040px;
   padding: 28px 42px 32px;
   background: #fff;
@@ -16,10 +17,12 @@
     background: #fff;
   }
 
+  // Contact block pushed down below photo
   .h1_block > .lr-container + .h2_block {
     margin-top: 110px;
   }
 
+  // Photo slot: first image after h1 or inside h1+p acts as photo
   .h1_block > h1 + p {
     margin: 0;
     height: 0;
@@ -28,10 +31,10 @@
 
   .h1_block > h1 + p img,
   .h1_block > img {
-    position: absolute !important;
-    top: 14px !important;
-    left: 22px !important;
-    width: 92px !important;
+    position: absolute;
+    top: 14px;
+    left: 22px;
+    width: 92px;
     max-width: 92px;
     height: 124px;
     object-fit: cover;
@@ -39,14 +42,15 @@
   }
 
   .h1_block > h1 {
+    font-size: 31px;
+    font-weight: 900;
     margin: 44px 370px 0 150px;
     color: #111;
-    font-size: 31px;
     line-height: 1.2;
-    font-weight: 900;
     letter-spacing: 0;
   }
 
+  // Contact info positioned top-right
   .h1_block > .lr-container {
     position: absolute;
     top: 28px;
@@ -54,82 +58,79 @@
     width: 335px;
     display: block;
     padding: 0;
-  }
 
-  .h1_block > .lr-container .left {
-    display: none;
-  }
+    .left { display: none; }
 
-  .h1_block > .lr-container .right {
-    text-align: left;
-  }
+    .right { text-align: left; }
 
-  .h1_block > .lr-container p {
-    margin: 0 0 7px;
-    color: #222;
-    font-size: 12.5px;
-    line-height: 1.42;
-    word-break: break-word;
-  }
+    p {
+      margin: 0 0 7px;
+      color: #222;
+      font-size: 12.5px;
+      line-height: 1.42;
+    }
 
-  .h1_block > .lr-container a {
-    color: #222;
+    a { color: #222; }
   }
 
   .h2_block {
-    margin: 0;
     padding: 8px 0 2px;
+    margin: 0;
     background: #fff;
-  }
-
-  h2 {
-    margin: 0 22px 8px;
-    padding: 0 0 4px;
-    color: #2e557a;
-    font-size: 19px;
-    line-height: 1.35;
-    font-weight: 900;
-    border-bottom: 3px solid #2e557a;
   }
 
   .h3_block {
     padding: 0 0 3px;
   }
 
+  .resume-section-title,
+  h2 {
+    color: #2e557a;
+    line-height: 1.35;
+    border-bottom: 3px solid #2e557a;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding: 0 0 4px;
+  }
+
+  .entry-title,
   h3 {
-    margin: 7px 22px 2px;
     color: #111;
-    font-size: 14px;
     line-height: 1.55;
-    font-weight: 800;
   }
 
   h4,
   h5 {
-    margin: 2px 22px;
-    color: #111;
     font-size: 13px;
-    line-height: 1.55;
     font-weight: 700;
+    color: #111;
   }
 
   p {
-    margin: 0 22px 4px;
     color: #222;
-    font-size: 12.5px;
+    font-size: 13px;
     line-height: 1.68;
+    margin-bottom: 4px;
+  }
+
+  .h3_block > p:first-of-type {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
   }
 
   ul,
   ol {
-    margin: 0 22px 5px;
+    margin-top: 0;
+    margin-bottom: 5px;
     padding: 0;
   }
 
-  li {
+  ul li,
+  ol li {
     margin-top: 3px;
     color: #222;
-    font-size: 12.5px;
+    font-size: 13px;
     line-height: 1.72;
     list-style-position: inside;
   }
@@ -144,18 +145,21 @@
 
   a {
     color: #222;
-    text-decoration: none;
+    &:hover,
+    &:active,
+    &:focus { color: #2e557a; }
   }
 
-  a:hover,
-  a:active,
-  a:focus {
-    color: #2e557a;
-    text-decoration: none;
-    outline: 0;
+  .icon { fill: #2e557a; }
+
+  .entry-date {
+    font-size: 13px;
+    color: #555;
   }
 
-  .icon {
-    fill: #2e557a;
+  // academic-blue uses its own horizontal gutter
+  .lr-container {
+    padding-left: 0;
+    padding-right: 0;
   }
 }
