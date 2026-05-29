@@ -9,6 +9,8 @@ interface Props {
 }
 
 const SectionBlock: React.FC<Props> = ({ data, onChange }) => {
+  const isH2 = data.level === 2;
+
   const updateItem = (index: number, item: SectionItem) => {
     const items = [...data.items];
     items[index] = item;
@@ -27,22 +29,22 @@ const SectionBlock: React.FC<Props> = ({ data, onChange }) => {
     <div>
       <div className="block-field">
         <label className="block-label">
-          {data.level === 2 ? '二级标题 (##)' : '三级标题 (###)'}
+          {isH2 ? '模块名称' : '条目标题'}
         </label>
         <div style={{ display: 'flex', gap: 8 }}>
           <Input
             value={data.title}
-            placeholder={data.level === 2 ? '如：工作经历' : '如：某公司 - 前端工程师'}
+            placeholder={isH2 ? '如：工作经历' : '如：公司名称 - 前端工程师'}
             style={{ flex: 1 }}
             onChange={e => onChange({ ...data, title: e.target.value })}
           />
           <Select
             value={data.level}
-            style={{ width: 80, flexShrink: 0 }}
-            onChange={(val: 2 | 3) => onChange({ ...data, level: val })}
+            style={{ width: 76, flexShrink: 0 }}
+            onChange={(val: 2 | 3) => onChange({ ...data, level: val, title: data.title })}
             options={[
-              { value: 2, label: 'H2' },
-              { value: 3, label: 'H3' },
+              { value: 2, label: '模块' },
+              { value: 3, label: '条目' },
             ]}
           />
         </div>
@@ -52,13 +54,13 @@ const SectionBlock: React.FC<Props> = ({ data, onChange }) => {
         <label className="block-label">副标题（可选）</label>
         <Input
           value={data.subtitle || ''}
-          placeholder="如：2020 - 至今"
+          placeholder={isH2 ? '如：工作经历' : '如：2020 - 至今'}
           onChange={e => onChange({ ...data, subtitle: e.target.value || undefined })}
         />
       </div>
 
       <div className="block-items">
-        <label className="block-label">条目列表</label>
+        <label className="block-label">条目内容</label>
         {data.items.length === 0 && (
           <div style={{
             padding: '20px 0',
@@ -73,19 +75,29 @@ const SectionBlock: React.FC<Props> = ({ data, onChange }) => {
           <div className="block-item-row" key={i}>
             <Select
               value={item.type}
-              style={{ width: 80, flexShrink: 0 }}
+              style={{ width: 76, flexShrink: 0 }}
               onChange={(val: SectionItem['type']) => updateItem(i, { ...item, type: val })}
               options={[
-                { value: 'bullet', label: '列表' },
-                { value: 'text', label: '文本' },
+                { value: 'bullet', label: '要点' },
+                { value: 'text', label: '段落' },
               ]}
             />
-            <Input
-              value={item.content}
-              placeholder={item.type === 'bullet' ? '列表项内容' : '文本内容'}
-              style={{ flex: 1 }}
-              onChange={e => updateItem(i, { ...item, content: e.target.value })}
-            />
+            {item.type === 'text' ? (
+              <Input.TextArea
+                value={item.content}
+                placeholder="段落内容，支持多行文本"
+                autoSize={{ minRows: 2, maxRows: 6 }}
+                style={{ flex: 1 }}
+                onChange={e => updateItem(i, { ...item, content: e.target.value })}
+              />
+            ) : (
+              <Input
+                value={item.content}
+                placeholder="要点内容"
+                style={{ flex: 1 }}
+                onChange={e => updateItem(i, { ...item, content: e.target.value })}
+              />
+            )}
             <button
               type="button"
               className="block-item-row__remove"
@@ -102,14 +114,14 @@ const SectionBlock: React.FC<Props> = ({ data, onChange }) => {
             className="block-add-item-btn"
             onClick={() => addItem('bullet')}
           >
-            <PlusOutlined /> 添加列表项
+            <PlusOutlined /> 添加要点
           </button>
           <button
             type="button"
             className="block-add-item-btn"
             onClick={() => addItem('text')}
           >
-            <PlusOutlined /> 添加文本
+            <PlusOutlined /> 添加段落
           </button>
         </div>
       </div>

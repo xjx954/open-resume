@@ -7,45 +7,195 @@
   background: #fff;
   -webkit-text-size-adjust: none;
 
-  h1 {
-    border-bottom: 1px solid #ddd;
-    color: #fff;
-  }
-
+  // ── Header block (name + title + contacts) ──
+  // No horizontal padding — h2/p/ul get their own 60px margins.
+  // h1_block wraps ALL content due to heading container nesting.
   .h1_block {
     margin-top: 0;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
+    padding: 60px 0 28px;
+    background: #fff;
+    color: #1a1a1a;
     font-size: 0;
     -webkit-text-size-adjust: none;
-    background: var(--bg);
+
     a {
-      color: #fff;
+      color: #555;
     }
+
     .h2_block:nth-of-type(1) {
-      margin-top: 20px;
+      margin-top: 0;
     }
   }
 
-  .lr-container {
-    padding: 10px 0 20px;
-    display: flex;
+  // ── H1: Name (needs its own horizontal margin since h1_block has no padding) ──
+  h1 {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0 60px;
+    padding: 0;
+    color: #1a1a1a;
+    border-bottom: none;
   }
 
-  .h2_block,
-  .h3_block,
+  // ── Job title / role line (the <p> immediately after H1) ──
+  .h1_block > p:first-of-type {
+    margin: 4px 60px 0;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #555;
+  }
+
+  // ── H2: Section title (small, uppercase, restrained) ──
+  h2 {
+    margin: 0 60px 14px;
+    padding: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #555;
+    text-align: left;
+    border-bottom: 1px solid #e5e5e5;
+    background: none;
+    border-radius: 0;
+    position: static;
+    width: auto;
+    min-width: 0;
+
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+
+  // ── H3: Entry / position title ──
+  h3 {
+    margin: 0 60px 6px;
+    padding: 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #1a1a1a;
+  }
+
+  // ── Section blocks ──
+  .h2_block {
+    padding: 0 0 30px;
+    margin: 0;
+    background: #fff;
+    color: #1a1a1a;
+    border: none;
+    position: static;
+  }
+
+  .h3_block {
+    padding: 0 0 16px;
+    margin: 0;
+    background: #fff;
+    color: #1a1a1a;
+  }
+
   .h4_block,
   .h5_block {
-    color: #000;
+    color: #1a1a1a;
     background: #fff;
   }
 
-  .h2_block a,
-  .h3_block a,
-  .h4_block a,
-  .h5_block a {
-    color: #9a9a9a;
+  // ── Two-column container (summary + contacts) ──
+  .lr-container {
+    padding: 0 60px 8px;
+    display: flex;
+    gap: 32px;
+  }
+
+  // ── Paragraphs ──
+  p {
+    margin: 0 60px 4px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: #333;
+  }
+
+  // ── Lists ──
+  ul {
+    margin: 2px 60px 4px;
+    padding: 0;
+    overflow: visible;
+  }
+
+  li {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    color: #333;
+    list-style: disc outside;
+  }
+
+  // ── Code / inline tags ──
+  code {
+    font-size: 12px;
+    color: #555;
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  // ── Links ──
+  a {
+    color: #555;
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: #1a1a1a;
+  }
+
+  a:active {
+    color: #1a1a1a;
+  }
+
+  a:active,
+  a:hover {
+    text-decoration: none;
+    outline: 0;
+  }
+
+  a:focus {
+    text-decoration: none;
+    outline: 0;
+  }
+
+  a[disabled] {
+    color: rgba(0, 0, 0, 0.25);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  // ── Icons (in contacts) ──
+  .icon {
+    fill: #555;
+  }
+
+  // ── Misc helpers ──
+  .left {
+    flex: auto;
+    text-align: left;
+  }
+
+  .right {
+    flex: auto;
+    text-align: right;
+  }
+
+  .title {
+    margin: 0 60px 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+    color: #888;
   }
 
   .block::before {
@@ -55,130 +205,10 @@
     clear: both;
   }
 
-  .title {
-    margin-top: 10px;
-    margin-left: 50px;
-    margin-right: 50px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #ddd;
-  }
-
   .right::after {
     display: block;
     content: "";
     height: 0;
     clear: both;
-  }
-
-  p {
-    // margin-top: 8px;
-    margin-bottom: 0px;
-    margin-left: 50px;
-    margin-right: 50px;
-    font-size: 14px;
-  }
-
-  h1 {
-    font-size: 28px;
-    margin: 0;
-    padding: 20px 0;
-    margin: 0 50px;
-  }
-  .h2_block {
-    position: relative;
-    border: 0px;
-    margin-top: -1px;
-    padding: 20px 0 10px;
-  }
-  // .h2_block::before {
-  //   position: absolute;
-  //   height: 1px;
-  //   top: -1px;
-  //   width: 100%;
-  //   background-color: #fff;
-  // }
-
-  .h3_block {
-    padding: 10px 0;
-  }
-
-  h2 {
-    position: relative;
-    z-index: 1;
-    width: calc(100% - 120px - 30% * 2);
-    min-width: 100px;
-    margin: 0px auto 5px;
-    padding: 4px 10px;
-    border-radius: 32px;
-    font-size: 16px;
-    text-align: center;
-    background-color: #eee;
-  }
-
-  h2::after {
-    content: "";
-    width: calc(100% + 10px);
-    position: absolute;
-    top: 50%;
-    height: 0;
-    left: 120%;
-    border-top: 1px solid #ededed;
-  }
-
-  h2::before {
-    content: "";
-    width: calc(100% + 10px);
-    position: absolute;
-    top: 50%;
-    height: 0;
-    left: -120%;
-    border-top: 1px solid #ededed;
-  }
-
-  h3 {
-    position: relative;
-    line-height: 1.8;
-    overflow: hidden;
-    margin-left: 50px;
-    margin-right: 50px;
-    font-size: 15px;
-  }
-
-  ul {
-    margin: 0 50px;
-  }
-
-  li {
-    font-size: 13px;
-    margin-top: 8px;
-    
-  }
-
-  a {
-    color: #9a9a9a;
-  }
-
-  a:hover {
-    color: rgb(209, 208, 208);
-  }
-  a:active {
-    color:rgb(209, 208, 208);
-  }
-  a:active,
-  a:hover {
-    text-decoration: none;
-    outline: 0;
-  }
-  a:focus {
-    text-decoration: none;
-    outline: 0;
-  }
-  a[disabled] {
-    color: rgba(255, 255, 255, 0.25);
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-  .icon {
-    fill: #fff;
   }
 }

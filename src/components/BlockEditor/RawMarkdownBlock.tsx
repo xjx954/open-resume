@@ -11,13 +11,13 @@ const RawMarkdownBlock: React.FC<Props> = ({ data, onChange }) => {
   return (
     <div className="block-editor-raw">
       <div className="block-raw-notice">
-        此内容包含复杂 Markdown 格式，无法完全转换为块编辑。你可以在下方直接编辑原始 Markdown，或切换到 Markdown 模式处理。
+        这段内容包含暂不支持结构化编辑的格式，可在这里精细调整。如需更完整的编辑体验，可以切换到 Markdown 模式。
       </div>
       <Input.TextArea
         rows={6}
         value={data.markdown}
         onChange={e => onChange({ markdown: e.target.value })}
-        placeholder="原始 Markdown 内容"
+        placeholder="补充内容"
       />
     </div>
   );

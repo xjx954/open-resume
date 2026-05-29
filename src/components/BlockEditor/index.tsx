@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
 import { useStores } from '@src/store';
 import {
@@ -26,7 +26,7 @@ import {
   DownOutlined,
   DragOutlined,
   UserOutlined,
-  LayoutOutlined,
+  IdcardOutlined,
   UnorderedListOutlined,
   CodeOutlined,
 } from '@ant-design/icons';
@@ -50,18 +50,23 @@ import './BlockEditor.less';
 
 const BLOCK_META: Record<ResumeBlock['type'], { icon: React.ReactNode; label: string }> = {
   'header': { icon: <UserOutlined />, label: '基本信息' },
-  'two-column': { icon: <LayoutOutlined />, label: '双栏布局' },
-  'section': { icon: <UnorderedListOutlined />, label: '章节' },
-  'raw-markdown': { icon: <CodeOutlined />, label: '原始 Markdown' },
+  'two-column': { icon: <IdcardOutlined />, label: '联系与简介' },
+  'section': { icon: <UnorderedListOutlined />, label: '简历模块' },
+  'raw-markdown': { icon: <CodeOutlined />, label: '高级内容' },
 };
 
-function getItemCount(block: ResumeBlock): number | null {
+function getItemCount(block: ResumeBlock): string | null {
   if (block.type === 'section') {
-    return (block.data as SectionData).items.length;
+    const d = block.data as SectionData;
+    const title = d.title || (d.level === 2 ? '新模块' : '新条目');
+    const n = d.items.length;
+    return `${title}（${n}）`;
   }
   if (block.type === 'two-column') {
     const d = block.data as TwoColumnData;
-    return d.left.contacts.length + d.right.contacts.length;
+    const n = d.left.contacts.length + d.right.contacts.length;
+    if (n > 0) return `联系方式（${n}）`;
+    return null;
   }
   return null;
 }
@@ -168,7 +173,7 @@ const SortableBlock: React.FC<SortableBlockProps> = ({
         </span>
         <span className="block-card-title__icon">{meta.icon}</span>
         <span className="block-card-title__label">{meta.label}</span>
-        {itemCount != null && itemCount > 0 && (
+        {itemCount != null && (
           <span className="block-card-title__count">{itemCount}</span>
         )}
         <span className={`block-card-title__chevron ${collapsed ? 'block-card-title__chevron--collapsed' : ''}`}>
@@ -251,7 +256,28 @@ const BlockEditor: React.FC = observer(() => {
   const { blocks, removeBlock, updateBlock, reorderBlocks, addBlock } = templateStore;
   const blockIds = blocks.map(b => b.id);
 
-  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => {
+    // Default: keep header expanded, collapse all other blocks
+    return new Set(blocks.filter(b => b.type !== 'header').map(b => b.id));
+  });
+  // Track blocks the user has manually toggled — don't auto-collapse these
+  const userToggledRef = useRef<Set<string>>(new Set());
+
+  // When blocks change (template switch, history restore, AI replace),
+  // auto-collapse newly appeared non-header blocks
+  useEffect(() => {
+    setCollapsedIds(prev => {
+      const next = new Set(prev);
+      for (const block of blocks) {
+        const id = block.id;
+        if (block.type !== 'header' && !prev.has(id) && !userToggledRef.current.has(id)) {
+          next.add(id);
+        }
+      }
+      return next;
+    });
+  }, [blocks]);
+
   const [activeDragBlock, setActiveDragBlock] = useState<ResumeBlock | null>(null);
 
   const sensors = useSensors(
@@ -261,6 +287,7 @@ const BlockEditor: React.FC = observer(() => {
   );
 
   const toggleCollapse = useCallback((id: string) => {
+    userToggledRef.current.add(id);
     setCollapsedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) {

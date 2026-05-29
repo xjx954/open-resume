@@ -25,7 +25,10 @@ export function blockToMarkdown(block: ResumeBlock): string {
   switch (block.type) {
     case 'header': {
       const d = block.data as HeaderData;
-      return d.title ? `# ${d.name} - ${d.title}` : `# ${d.name}`;
+      if (d.title) {
+        return `# ${d.name}\n\n${d.title}`;
+      }
+      return `# ${d.name}`;
     }
     case 'two-column': {
       const d = block.data as TwoColumnData;
@@ -119,12 +122,28 @@ export function markdownToBlocks(md: string): ResumeBlock[] {
       const text = headingMatch[2].trim();
 
       if (level === 1) {
+        const headerData = parseHeaderText(text);
+        // Look ahead for an implicit title line (new format: # Name \n\n Title)
+        if (!headerData.title) {
+          let nextIdx = i + 1;
+          while (nextIdx < rawLines.length && !rawLines[nextIdx].trim()) {
+            nextIdx++;
+          }
+          const nextLine = nextIdx < rawLines.length ? rawLines[nextIdx].trim() : '';
+          if (nextLine && !/^#{1,3}\s+/.test(nextLine) && !/^:::/.test(nextLine)) {
+            headerData.title = nextLine;
+            i = nextIdx + 1;
+          } else {
+            i++;
+          }
+        } else {
+          i++;
+        }
         blocks.push({
           id: generateId(),
           type: 'header',
-          data: parseHeaderText(text),
+          data: headerData,
         });
-        i++;
         continue;
       }
 

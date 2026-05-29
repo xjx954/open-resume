@@ -12,7 +12,7 @@ describe('blockToMarkdown', () => {
       type: 'header',
       data: { name: '张三', title: '前端工程师' } as HeaderData,
     };
-    expect(blockToMarkdown(block)).toBe('# 张三 - 前端工程师');
+    expect(blockToMarkdown(block)).toBe('# 张三\n\n前端工程师');
   });
 
   it('serializes header block without title', () => {
@@ -116,7 +116,7 @@ describe('blocksToMarkdown', () => {
       },
     ];
     const md = blocksToMarkdown(blocks);
-    expect(md).toBe('# 张三 - 前端工程师\n\n## 技能\n\n- React');
+    expect(md).toBe('# 张三\n\n前端工程师\n\n## 技能\n\n- React');
   });
 });
 
@@ -135,6 +135,26 @@ describe('markdownToBlocks — header', () => {
     expect(blocks[0].type).toBe('header');
     expect((blocks[0].data as HeaderData).name).toBe('张三');
     expect((blocks[0].data as HeaderData).title).toBe('');
+  });
+
+  it('parses new format: # Name followed by title on separate line', () => {
+    const md = ['# 张三', '', '前端工程师', '', '## 技能', '', '- React'].join('\n');
+    const blocks = markdownToBlocks(md);
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0].type).toBe('header');
+    const headerData = blocks[0].data as HeaderData;
+    expect(headerData.name).toBe('张三');
+    expect(headerData.title).toBe('前端工程师');
+    expect(blocks[1].type).toBe('section');
+  });
+
+  it('parses new format: H1 with dash still works for backward compatibility', () => {
+    const blocks = markdownToBlocks('# 张三 - 前端工程师\n\n## 技能\n\n- React');
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0].type).toBe('header');
+    const headerData = blocks[0].data as HeaderData;
+    expect(headerData.name).toBe('张三');
+    expect(headerData.title).toBe('前端工程师');
   });
 });
 

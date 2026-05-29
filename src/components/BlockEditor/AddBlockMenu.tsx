@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dropdown, Menu } from 'antd';
-import { PlusOutlined, UserOutlined, LayoutOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { PlusOutlined, UserOutlined, IdcardOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import { ResumeBlock, HeaderData, TwoColumnData, SectionData } from '@src/types/resume';
 import { useStores } from '@src/store';
 import { observer } from 'mobx-react';
@@ -46,11 +46,11 @@ const AddBlockMenu: React.FC = observer(() => {
       <Menu.Item key="header" icon={<UserOutlined />} onClick={() => handleAdd('header')}>
         基本信息（姓名 + 岗位）
       </Menu.Item>
-      <Menu.Item key="two-column" icon={<LayoutOutlined />} onClick={() => handleAdd('two-column')}>
-        双栏布局（左/右）
+      <Menu.Item key="two-column" icon={<IdcardOutlined />} onClick={() => handleAdd('two-column')}>
+        联系与简介
       </Menu.Item>
       <Menu.Item key="section" icon={<UnorderedListOutlined />} onClick={() => handleAdd('section')}>
-        章节（标题 + 条目）
+        简历模块（工作经历、技能等）
       </Menu.Item>
     </Menu>
   );

@@ -81,14 +81,22 @@ const HeaderBar = observer(() => {
     if (!resultFile) return;
     const reader = new FileReader();
     reader.readAsText(resultFile);
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        templateStore.editorRef && (templateStore.editorRef.setValue(e.target.result as string));
+    reader.onload = (event) => {
+      const nextContent = event.target?.result;
+      if (typeof nextContent === 'string') {
+        templateStore.setMdContent(nextContent);
+        templateStore.editorRef?.setValue(nextContent);
         setPreview(false);
-        renderViewStyle(color, mdContent);
+        renderViewStyle(color, nextContent);
+        message.success("导入 Markdown 成功");
       }
+      e.target.value = '';
     };
-  }, [color, mdContent, setPreview, templateStore.editorRef]);
+    reader.onerror = () => {
+      message.error("导入 Markdown 失败，请确认文件内容可读取");
+      e.target.value = '';
+    };
+  }, [color, setPreview, templateStore]);
 
   const exportMdFile = useCallback(() => {
     const file = new Blob([mdContent]);

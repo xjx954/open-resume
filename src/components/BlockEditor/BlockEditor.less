@@ -28,37 +28,38 @@
 
 .block-card {
   background: var(--card-bg, #ffffff);
-  border: 1px solid var(--border-light, #eef0f2);
+  border: 1px solid #f0f0f3;
   border-radius: var(--radius-md, 10px);
-  box-shadow: var(--card-shadow);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   margin-bottom: var(--space-card-gap, 10px);
   transition:
     box-shadow var(--transition-smooth, 0.2s),
     transform var(--transition-smooth, 0.2s),
-    border-color var(--transition-smooth, 0.2s);
+    border-color var(--transition-smooth, 0.2s),
+    background var(--transition-fast, 0.15s);
   position: relative;
 
   &:hover {
-    border-color: var(--border-default, #e5e7eb);
-    box-shadow: var(--card-shadow-hover);
-    transform: translateY(-1px);
+    border-color: #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
 
   // Dragging state
   &.block-card--dragging {
-    box-shadow: var(--card-shadow-drag);
-    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     z-index: 100;
     border-color: var(--accent, #2563eb);
-    opacity: 0.95;
+    background: #f8faff;
+    opacity: 0.9;
   }
 
   // Drag overlay clone
   &.block-card--overlay {
-    box-shadow: var(--card-shadow-drag);
-    transform: rotate(1deg) scale(1.03);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
+    transform: rotate(1.5deg) scale(1.03);
     border-color: var(--accent, #2563eb);
     cursor: grabbing;
+    background: #fff;
   }
 }
 
@@ -126,12 +127,16 @@
 
 .block-card-title__count {
   font-size: 11px;
-  font-weight: 550;
-  color: var(--text-tertiary, #9ca3af);
-  background: #f3f4f6;
-  padding: 2px 8px;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+  background: #f5f5f7;
+  padding: 2px 10px;
   border-radius: 10px;
   flex-shrink: 0;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .block-card-title__chevron {
@@ -249,7 +254,7 @@
 // —— Field system ——
 
 .block-field {
-  margin-bottom: var(--space-field-gap, 14px);
+  margin-bottom: 16px;
 
   &:last-child {
     margin-bottom: 0;

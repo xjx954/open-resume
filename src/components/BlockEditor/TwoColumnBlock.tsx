@@ -51,7 +51,7 @@ const ColumnEditor: React.FC<ColumnEditorProps> = ({ column, title, onChange }) 
         <Input.TextArea
           rows={2}
           value={column.text}
-          placeholder="个人简介或补充信息"
+          placeholder="一句话描述你的职业优势或核心经验"
           onChange={e => onChange({ ...column, text: e.target.value })}
         />
       </div>
@@ -109,13 +109,13 @@ const TwoColumnBlock: React.FC<Props> = ({ data, onChange }) => {
     <div className="block-editor-twocol">
       <ColumnEditor
         column={data.left}
-        title="左栏"
+        title="个人总结"
         onChange={left => onChange({ ...data, left })}
       />
       <div className="block-column-divider" />
       <ColumnEditor
         column={data.right}
-        title="右栏"
+        title="联系方式"
         onChange={right => onChange({ ...data, right })}
       />
     </div>
