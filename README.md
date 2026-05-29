@@ -2,6 +2,8 @@
 
 A free, open-source Markdown resume builder with live preview, dual editing modes, AI optimization, 7 themes, and one-click PDF export.
 
+English | [简体中文](README.zh-CN.md)
+
 ## Features
 
 ### Editing
