@@ -2,10 +2,9 @@
  * Open Resume — Unified Dev Launcher
  *
  * Starts frontend + PDF backend with a single command.
- * Handles startup, crash recovery, and graceful shutdown.
+ *   npm start
  *
- *   npm start        → unified launch (both services)
- *   npm run start:web → frontend only
+ * Press Ctrl+C to stop all services.
  */
 
 const { spawn, execSync } = require('child_process');
@@ -19,6 +18,8 @@ const FRONTEND_PORT = 3000;
 const PDF_SERVER_PORT = 4000;
 
 const children = [];
+const ready = { web: false, pdf: false };
+let readyPrinted = false;
 
 // ── Helpers ──────────────────────────────────────────
 
@@ -30,15 +31,16 @@ function color(c, s) {
 function banner() {
   console.log('');
   console.log(`  ${color('cyan', '◆')}  ${color('reset', 'Open Resume')}  ${color('gray', '— dev mode')}`);
+  console.log(`     Frontend → :${FRONTEND_PORT}   |   PDF API → :${PDF_SERVER_PORT}`);
   console.log('');
 }
 
 function checkPort(port) {
   return new Promise((resolve) => {
     const req = http.get(`http://localhost:${port}`, () => {
-      resolve(false); // port is in use
+      resolve(false);
     });
-    req.on('error', () => resolve(true)); // port is free
+    req.on('error', () => resolve(true));
     req.setTimeout(1500, () => { req.destroy(); resolve(false); });
   });
 }
@@ -47,6 +49,19 @@ function killTree(pid) {
   if (!isWindows) return;
   try { execSync(`taskkill /F /T /PID ${pid} 2>nul`, { stdio: 'ignore' }); } catch {}
 }
+
+// ── Node args (OpenSSL compat for Node ≥ 17) ─────────
+
+function getNodeArgs() {
+  const nodeMajor = Number(process.versions.node.split('.')[0]);
+  const nodeOptions = process.env.NODE_OPTIONS || '';
+  const hasLegacyProvider =
+    process.execArgv.includes('--openssl-legacy-provider') ||
+    nodeOptions.includes('--openssl-legacy-provider');
+  return nodeMajor >= 17 && !hasLegacyProvider ? ['--openssl-legacy-provider'] : [];
+}
+
+const nodeArgs = getNodeArgs();
 
 // ── Process manager ──────────────────────────────────
 
@@ -60,12 +75,21 @@ function start(name, command, args, opts = {}) {
   children.push(child);
 
   child.stdout.on('data', (data) => {
-    const prefix = color('cyan', `[${name}]`);
-    process.stdout.write(`${prefix} ${data}`);
+    const text = data.toString();
+    const tag = color('cyan', `[${name}]`);
+    process.stdout.write(`${tag} ${text}`);
+
+    if (name === 'web ' && text.includes('Project is running')) {
+      ready.web = true;
+      printReady();
+    }
+    if (name === 'pdf ' && text.includes('PDF server running')) {
+      ready.pdf = true;
+      printReady();
+    }
   });
 
   child.stderr.on('data', (data) => {
-    // webpack-dev-server outputs info to stderr — treat as normal
     process.stderr.write(`${color('cyan', `[${name}]`)} ${data}`);
   });
 
@@ -87,15 +111,26 @@ function start(name, command, args, opts = {}) {
   return child;
 }
 
-// Restart a crashed process
 function watch(name, child, command, args, opts) {
   child.on('close', (code, signal) => {
-    if (signal) return; // killed by us — don't restart
-    if (children.length === 0) return; // shutting down
+    if (signal) return;
+    if (children.length === 0) return;
     console.log(`${color('yellow', `[${name}]`)} restarting...`);
     const newChild = start(name, command, args, opts);
     watch(name, newChild, command, args, opts);
   });
+}
+
+// ── Ready summary ────────────────────────────────────
+
+function printReady() {
+  if (!ready.web || !ready.pdf || readyPrinted) return;
+  readyPrinted = true;
+  console.log('');
+  console.log(`  ${color('green', '✓')}  Services ready:`);
+  console.log(`     Frontend  ${color('gray', '→')} ${color('cyan', `http://localhost:${FRONTEND_PORT}`)}`);
+  console.log(`     PDF API   ${color('gray', '→')} ${color('cyan', `http://localhost:${PDF_SERVER_PORT}/api/pdf`)}`);
+  console.log('');
 }
 
 // ── Shutdown ─────────────────────────────────────────
@@ -108,12 +143,10 @@ function shutdown() {
 
   console.log(`\n${color('magenta', 'Shutting down...')}`);
 
-  // Step 1: graceful SIGTERM
   children.forEach((child) => {
     try { child.kill('SIGTERM'); } catch {}
   });
 
-  // Step 2: force kill after 2s
   setTimeout(() => {
     children.forEach((child) => {
       if (child.exitCode === null && child.signalCode === null) {
@@ -125,7 +158,6 @@ function shutdown() {
       }
     });
 
-    // Step 3: cleanup orphaned browser processes
     if (isWindows) {
       try {
         execSync('taskkill /F /IM chrome.exe /FI "SESSIONNAME eq Console" 2>nul', { stdio: 'ignore' });
@@ -150,7 +182,6 @@ process.on('uncaughtException', (err) => {
 async function main() {
   banner();
 
-  // Port conflict check
   const webFree = await checkPort(FRONTEND_PORT);
   const pdfFree = await checkPort(PDF_SERVER_PORT);
 
@@ -173,18 +204,28 @@ async function main() {
     env: { ...process.env, PORT: String(PDF_SERVER_PORT) },
   });
 
-  // Frontend dev server
+  // Frontend dev server (inline OpenSSL compat, skip browserslist check)
   const webServer = start('web ', process.execPath, [
-    path.join(ROOT, 'scripts', 'withLegacyOpenSSL.js'),
+    ...nodeArgs,
     path.join(ROOT, 'scripts', 'start.js'),
   ], {
-    env: { ...process.env, PORT: String(FRONTEND_PORT), BROWSER: 'none' },
+    env: {
+      ...process.env,
+      PORT: String(FRONTEND_PORT),
+      BROWSER: 'none',
+      BROWSERSLIST_IGNORE_OLD_DATA: 'true',
+    },
   });
   watch('web ', webServer, process.execPath, [
-    path.join(ROOT, 'scripts', 'withLegacyOpenSSL.js'),
+    ...nodeArgs,
     path.join(ROOT, 'scripts', 'start.js'),
   ], {
-    env: { ...process.env, PORT: String(FRONTEND_PORT), BROWSER: 'none' },
+    env: {
+      ...process.env,
+      PORT: String(FRONTEND_PORT),
+      BROWSER: 'none',
+      BROWSERSLIST_IGNORE_OLD_DATA: 'true',
+    },
   });
 
   console.log(color('gray', 'Press Ctrl+C to stop all services.\n'));
