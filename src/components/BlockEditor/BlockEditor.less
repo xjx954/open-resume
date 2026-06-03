@@ -4,6 +4,30 @@
 
 // —— Panel ——
 
+.block-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.block-editor-actions__btn {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #4b5563;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--accent, #2563eb);
+    border-color: #c7d2fe;
+    background: #f8faff;
+  }
+}
+
 .rs-block-editor {
   height: 100%;
   overflow-y: auto;

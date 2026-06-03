@@ -14,6 +14,37 @@ const defaultConfig: AiConfig = {
   model: "gpt-4o-mini",
 };
 
+const providerPresets = [
+  {
+    key: "openai",
+    label: "OpenAI",
+    baseURL: "https://api.openai.com/v1",
+    model: "gpt-4o-mini",
+    helpUrl: "https://platform.openai.com/api-keys",
+  },
+  {
+    key: "deepseek",
+    label: "DeepSeek V3",
+    baseURL: "https://api.deepseek.com/v1",
+    model: "deepseek-chat",
+    helpUrl: "https://platform.deepseek.com/api_keys",
+  },
+  {
+    key: "qwen",
+    label: "通义千问",
+    baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    model: "qwen-plus",
+    helpUrl: "https://bailian.console.aliyun.com/",
+  },
+  {
+    key: "glm",
+    label: "智谱 GLM",
+    baseURL: "https://open.bigmodel.cn/api/paas/v4",
+    model: "glm-4",
+    helpUrl: "https://open.bigmodel.cn/usercenter/apikeys",
+  },
+];
+
 const taskOptions: AiTaskOption[] = [
   {
     type: "polish",
@@ -76,6 +107,18 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
     const nextConfig = {
       ...config,
       [key]: value,
+    };
+    setConfig(nextConfig);
+    localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(nextConfig));
+  };
+
+  const applyProviderPreset = (presetKey: string) => {
+    const preset = providerPresets.find(item => item.key === presetKey);
+    if (!preset) return;
+    const nextConfig = {
+      ...config,
+      baseURL: preset.baseURL,
+      model: preset.model,
     };
     setConfig(nextConfig);
     localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(nextConfig));
@@ -145,6 +188,30 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
             </Button>
           </Tabs.TabPane>
           <Tabs.TabPane tab="模型配置" key="config">
+            <div className="resume-ai__section">
+              <label>服务商预设</label>
+              <Select
+                placeholder="选择后自动填入 Base URL 和 Model"
+                style={{ width: "100%" }}
+                onChange={applyProviderPreset}
+              >
+                {providerPresets.map((item) => (
+                  <Select.Option value={item.key} key={item.key}>
+                    {item.label} - {item.model}
+                  </Select.Option>
+                ))}
+              </Select>
+              <div style={{ marginTop: 8 }}>
+                {providerPresets.map((item, index) => (
+                  <React.Fragment key={item.key}>
+                    {index > 0 && <span style={{ color: "#d1d5db", margin: "0 6px" }}>/</span>}
+                    <a href={item.helpUrl} target="_blank" rel="noreferrer">
+                      {item.label} Key
+                    </a>
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
             <Alert
               type="warning"
               showIcon

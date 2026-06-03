@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Dropdown,
   Menu,
@@ -24,6 +24,7 @@ import "./index.less";
 import { getTheme } from "@utils/changeThemes";
 import { downloadDirect, markdownParserArticle, sanitizeHtml } from "@utils/helper";
 import { generatePdfBlob } from "@src/service/htmlToPdf";
+import { printPdfFallback } from "@src/service/printPdf";
 import { useStores } from "@src/store";
 import { updateTemplate, renderViewStyle, renderResumePreviewMode } from "@src/utils/global";
 import { LOCAL_STORE, UPDATE_CONTENT, UPDATE_LOG_VERSION } from '@src/utils/const';
@@ -32,6 +33,7 @@ import { themes } from '@utils/const';
 import Shortcuts from "@src/components/Shortcuts";
 import History from "@src/components/History";
 import ResumeAiModal from "@src/components/ResumeAiModal";
+import { HeaderData } from "@src/types/resume";
 
 const is_update = +(localStorage.getItem(LOCAL_STORE.MD_UPDATE_LOG) || 0) >= UPDATE_LOG_VERSION ? false : true;
 
@@ -39,6 +41,7 @@ interface ExportFormValues {
   name: string;
   isOnePage: boolean;
   isMark: boolean;
+  watermarkText?: string;
 }
 
 function getErrorMessage(error: unknown) {
@@ -64,6 +67,11 @@ const HeaderBar = observer(() => {
   const templateListRef = useRef<HTMLDivElement>(null);
 
   const currentTheme = themes.find(t => t.id === theme);
+  const resumeName = useMemo(() => {
+    const header = templateStore.blocks.find(block => block.type === 'header');
+    const name = header ? (header.data as HeaderData).name?.trim() : '';
+    return name ? `${name}简历` : '未命名简历';
+  }, [templateStore.blocks]);
 
   const handleOk = async () => {
     setIsThemeLoading(true);
@@ -149,6 +157,7 @@ const HeaderBar = observer(() => {
     name,
     isOnePage,
     isMark,
+    watermarkText,
   }: ExportFormValues) => {
     const rsViewer = document.querySelector(".rs-view") as HTMLElement;
     if (!isPreview) {
@@ -170,6 +179,7 @@ const HeaderBar = observer(() => {
           theme,
           themeColor,
           isMark,
+          watermarkText,
           isOnePage,
           pages,
         });
@@ -182,7 +192,17 @@ const HeaderBar = observer(() => {
         hide();
         const errMsg = getErrorMessage(e);
         console.error('PDF export failed:', e);
-        message.error(`生成简历出错: ${errMsg}`);
+        try {
+          printPdfFallback({
+            htmlContent: String(htmlContent),
+            themeColor,
+            isMark,
+            watermarkText,
+          });
+          message.warning(`PDF 服务不可用，已切换到浏览器打印: ${errMsg}`);
+        } catch (fallbackError: unknown) {
+          message.error(`生成简历出错: ${getErrorMessage(fallbackError)}`);
+        }
       }
       setPreview(false);
       renderViewStyle(color, mdContent);
@@ -199,6 +219,12 @@ const HeaderBar = observer(() => {
   useEffect(() => {
     getTheme(theme);
   }, [theme]);
+
+  useEffect(() => {
+    const openExport = () => setIsExportVisible(true);
+    window.addEventListener('open-resume:export-pdf', openExport);
+    return () => window.removeEventListener('open-resume:export-pdf', openExport);
+  }, []);
 
   // ------ Overflow menu (File, Templates, Shortcuts, History) ------
 
@@ -288,7 +314,7 @@ const HeaderBar = observer(() => {
           alt="Open Resume"
         />
         <div className="rs-editor-toolbar__doc-info">
-          <span className="rs-editor-toolbar__doc-name">未命名简历</span>
+          <span className="rs-editor-toolbar__doc-name">{resumeName}</span>
           <span className="rs-editor-toolbar__doc-ext">.md</span>
         </div>
       </div>
@@ -400,7 +426,7 @@ const HeaderBar = observer(() => {
             labelCol={{ span: 6 }}
             wrapperCol={{ span: 14 }}
             layout="horizontal"
-            initialValues={{ isMark: true }}
+            initialValues={{ isMark: true, watermarkText: 'Open Resume' }}
             onFinish={(values: ExportFormValues) => exportPdf(values)}
           >
             <Form.Item name="name" label="简历名称">
@@ -411,6 +437,9 @@ const HeaderBar = observer(() => {
             </Form.Item>
             <Form.Item name="isMark" label="添加水印" valuePropName="checked">
               <Switch />
+            </Form.Item>
+            <Form.Item name="watermarkText" label="水印文字">
+              <Input placeholder="Open Resume" />
             </Form.Item>
           </Form>
         </Modal>

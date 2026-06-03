@@ -17,7 +17,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Dropdown, Menu } from 'antd';
+import { Dropdown, Menu, message } from 'antd';
 import {
   MoreOutlined,
   DeleteOutlined,
@@ -320,19 +320,28 @@ const BlockEditor: React.FC = observer(() => {
   const { blocks, removeBlock, updateBlock, reorderBlocks, addBlock } = templateStore;
   const blockIds = blocks.map(b => b.id);
 
-  // Single expanded block (accordion). null = all collapsed (except header).
-  const [expandedId, setExpandedId] = useState<string | null>(() => {
-    // Default: header is expanded, all others collapsed
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
+    const header = blocks.find(b => b.type === 'header');
+    return new Set(header ? [header.id] : []);
+  });
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(() => {
     const header = blocks.find(b => b.type === 'header');
     return header ? header.id : null;
   });
   const userToggledRef = useRef<Set<string>>(new Set());
 
-  // When blocks change, ensure at most one non-header block is expanded
   useEffect(() => {
-    setExpandedId(prev => {
-      if (prev && blocks.some(b => b.id === prev)) return prev;
-      // If previously expanded block was removed, expand header
+    const validIds = new Set(blocks.map(b => b.id));
+    setExpandedIds(prev => {
+      const next = new Set(Array.from(prev).filter(id => validIds.has(id)));
+      if (next.size === 0) {
+        const header = blocks.find(b => b.type === 'header');
+        if (header) next.add(header.id);
+      }
+      return next;
+    });
+    setActiveBlockId(prev => {
+      if (prev && validIds.has(prev)) return prev;
       const header = blocks.find(b => b.type === 'header');
       return header ? header.id : null;
     });
@@ -348,7 +357,16 @@ const BlockEditor: React.FC = observer(() => {
 
   const toggleCollapse = useCallback((id: string) => {
     userToggledRef.current.add(id);
-    setExpandedId(prev => (prev === id ? null : id));
+    setActiveBlockId(id);
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }, []);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -375,7 +393,19 @@ const BlockEditor: React.FC = observer(() => {
     };
     const idx = blocks.findIndex(b => b.id === block.id);
     addBlock(newBlock, idx + 1);
+    setExpandedIds(prev => new Set([...Array.from(prev), newBlock.id]));
+    setActiveBlockId(newBlock.id);
   }, [blocks, addBlock]);
+
+  const handleRemove = useCallback((id: string) => {
+    removeBlock(id);
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    setActiveBlockId(prev => (prev === id ? null : prev));
+  }, [removeBlock]);
 
   const handleMoveUp = useCallback((index: number) => {
     if (index === 0) return;
@@ -387,8 +417,80 @@ const BlockEditor: React.FC = observer(() => {
     reorderBlocks(index, index + 1);
   }, [blocks.length, reorderBlocks]);
 
+  const getShortcutTarget = useCallback(() => {
+    const fallbackId = Array.from(expandedIds).reverse().find(id => blocks.some(b => b.id === id));
+    const targetId = activeBlockId && blocks.some(b => b.id === activeBlockId) ? activeBlockId : fallbackId;
+    return blocks.find(b => b.id === targetId) || null;
+  }, [activeBlockId, blocks, expandedIds]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tagName = target?.tagName;
+      const isTextInput = !!tagName && ['INPUT', 'TEXTAREA', 'SELECT'].includes(tagName);
+      const mod = e.ctrlKey || e.metaKey;
+      const key = e.key.toLowerCase();
+      if ((isTextInput || target?.isContentEditable) && !(mod && ['z', 'y', 's', 'p'].includes(key))) return;
+
+      if (mod && key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        templateStore.undo();
+        return;
+      }
+      if (mod && ((key === 'z' && e.shiftKey) || key === 'y')) {
+        e.preventDefault();
+        templateStore.redo();
+        return;
+      }
+      if (mod && key === 's') {
+        e.preventDefault();
+        message.success('已保存');
+        return;
+      }
+      if (mod && key === 'p') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('open-resume:export-pdf'));
+        return;
+      }
+      if (mod && key === 'd') {
+        const targetBlock = getShortcutTarget();
+        if (targetBlock) {
+          e.preventDefault();
+          handleDuplicate(targetBlock);
+        }
+        return;
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const targetBlock = getShortcutTarget();
+        if (targetBlock) {
+          e.preventDefault();
+          handleRemove(targetBlock.id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [getShortcutTarget, handleDuplicate, handleRemove, templateStore]);
+
+  const expandAll = useCallback(() => {
+    setExpandedIds(new Set(blocks.map(b => b.id)));
+  }, [blocks]);
+
+  const collapseAll = useCallback(() => {
+    setExpandedIds(new Set());
+  }, []);
+
   return (
     <div className="rs-block-editor">
+      <div className="block-editor-actions">
+        <button type="button" className="block-editor-actions__btn" onClick={expandAll}>
+          全部展开
+        </button>
+        <button type="button" className="block-editor-actions__btn" onClick={collapseAll}>
+          全部折叠
+        </button>
+      </div>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -402,10 +504,10 @@ const BlockEditor: React.FC = observer(() => {
               block={block}
               index={index}
               total={blocks.length}
-              collapsed={expandedId !== block.id}
+              collapsed={!expandedIds.has(block.id)}
               onToggleCollapse={() => toggleCollapse(block.id)}
               onUpdate={updateBlock}
-              onRemove={removeBlock}
+              onRemove={handleRemove}
               onDuplicate={handleDuplicate}
               onMoveUp={handleMoveUp}
               onMoveDown={handleMoveDown}

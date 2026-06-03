@@ -7,6 +7,7 @@ export interface ResumeBlock {
 export interface HeaderData {
   name: string;
   title: string;
+  photo?: string;
 }
 
 export interface TwoColumnData {
@@ -23,6 +24,7 @@ export interface ContactItem {
   icon: string;
   label: string;
   link?: string;
+  type?: 'email' | 'phone' | 'github' | 'blog' | 'juejin' | 'zhihu' | 'csdn' | 'linkedin' | 'website' | 'custom';
 }
 
 export interface SectionEntry {

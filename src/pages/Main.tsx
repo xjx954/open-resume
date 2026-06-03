@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useHistory, useLocation } from "react-router-dom";
 import SplitPane from "react-split-pane";
-import { message } from "antd";
+import { message, Radio } from "antd";
 import Editor from "./Editor";
 import BlockEditor from "@src/components/BlockEditor";
 import View from "./View";
@@ -12,21 +12,29 @@ import { renderResumePreviewMode } from "@src/utils/global";
 import "./Main.less";
 import ColorPicker from "./ColorPicker";
 
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
-
 const DEFAULT_ZOOM = 100;
 const ZOOM_STEP = 10;
 const PAPER_WIDTH = 794;
-const SIDEBAR_DEFAULT = 400;
-const SIDEBAR_MIN = 360;
-const SIDEBAR_MAX = 480;
+const SIDEBAR_DEFAULT = 600;
+const SIDEBAR_MIN = 400;
+const SIDEBAR_MAX = 1200;
 
 const Main: React.FC = observer(() => {
-  const query = useQuery();
-  const isMdMode = query.get("mode") === "md";
+  const location = useLocation();
+  const history = useHistory();
+  const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const urlMdMode = query.get("mode") === "md";
   const { templateStore } = useStores();
+
+  // Use local state as the primary toggle to avoid timing issues with URL updates
+  const [editorMode, setEditorMode] = useState<"block" | "md">(
+    urlMdMode ? "md" : "block"
+  );
+
+  // Sync from external URL changes (e.g., browser back/forward)
+  useEffect(() => {
+    setEditorMode(urlMdMode ? "md" : "block");
+  }, [urlMdMode]);
 
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const viewWrapperRef = useRef<HTMLDivElement>(null);
@@ -63,10 +71,47 @@ const Main: React.FC = observer(() => {
     }
   }, [templateStore]);
 
+  const handleModeChange = useCallback((mode: "block" | "md") => {
+    // When switching from Markdown to visual mode, flush the current
+    // editor content to blocks immediately to avoid data loss from the
+    // debounced 2s save timer.
+    if (mode === "block" && editorMode === "md" && templateStore.editorRef) {
+      const currentMd = templateStore.editorRef.getValue();
+      templateStore.setMdContent(currentMd);
+    }
+    // Update local state immediately so the UI responds without waiting for URL roundtrip
+    setEditorMode(mode);
+    const nextQuery = new URLSearchParams(location.search);
+    if (mode === "md") {
+      nextQuery.set("mode", "md");
+    } else {
+      nextQuery.delete("mode");
+    }
+    const search = nextQuery.toString();
+    history.replace({
+      pathname: location.pathname,
+      search: search ? `?${search}` : "",
+    });
+  }, [history, location.pathname, location.search, editorMode, templateStore]);
+
   return (
     <div className="rs-container">
       <SplitPane split="vertical" defaultSize={SIDEBAR_DEFAULT} minSize={SIDEBAR_MIN} maxSize={SIDEBAR_MAX}>
-        {isMdMode ? <Editor /> : <BlockEditor />}
+        <div className="rs-editor-panel">
+          <div className="rs-editor-mode-switch">
+            <Radio.Group
+              size="small"
+              value={editorMode}
+              onChange={e => handleModeChange(e.target.value)}
+            >
+              <Radio.Button value="block">可视化编辑</Radio.Button>
+              <Radio.Button value="md">Markdown</Radio.Button>
+            </Radio.Group>
+          </div>
+          <div className="rs-editor-panel__body" key={editorMode}>
+            {editorMode === "md" ? <Editor /> : <BlockEditor />}
+          </div>
+        </div>
         <div className="rs-preview-panel">
           <EditorToolbar
             zoom={zoom}

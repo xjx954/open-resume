@@ -28,6 +28,10 @@ function persistBlocks(blocks: ResumeBlock[], mdContent: string) {
   } catch { /* quota exceeded, non-critical */ }
 }
 
+function cloneBlocks(blocks: ResumeBlock[]): ResumeBlock[] {
+  return JSON.parse(JSON.stringify(blocks));
+}
+
 class TemplateStore {
   theme = default_theme;
   tempTheme = default_theme;
@@ -41,6 +45,9 @@ class TemplateStore {
   // Non-observable editor reference and edit counter
   editorRef: ResumeEditorRef | null = null;
   editorCount: number = Number(localStorage.getItem(LOCAL_STORE.MD_COUNT)) || 0;
+  undoStack: ResumeBlock[][] = [];
+  redoStack: ResumeBlock[][] = [];
+  maxUndo = 50;
 
   constructor() {
     makeAutoObservable(this, {
@@ -82,7 +89,26 @@ class TemplateStore {
     this.html = setHtmlView(this.color, this.mdContent);
   }
 
-  setMdContent = (content: string) => {
+  pushUndo = () => {
+    this.undoStack.push(cloneBlocks(this.blocks));
+    if (this.undoStack.length > this.maxUndo) {
+      this.undoStack.shift();
+    }
+    this.redoStack = [];
+  }
+
+  get canUndo() {
+    return this.undoStack.length > 0;
+  }
+
+  get canRedo() {
+    return this.redoStack.length > 0;
+  }
+
+  setMdContent = (content: string, recordUndo = true) => {
+    if (recordUndo) {
+      this.pushUndo();
+    }
     this.mdContent = content;
     this.blocks = this.blocks.map(sanitizeBlock);
     persistBlocks(this.blocks, content);
@@ -93,7 +119,7 @@ class TemplateStore {
     this.html = value;
   }
 
-  setEditorRef = (ref: ResumeEditorRef) => {
+  setEditorRef = (ref: ResumeEditorRef | null) => {
     this.editorRef = ref;
   }
 
@@ -103,10 +129,28 @@ class TemplateStore {
 
   // ——— Block manipulation ————
 
-  setBlocks = (blocks: ResumeBlock[]) => {
-    this.blocks = blocks.map(sanitizeBlock);
-    persistBlocks(blocks, blocksToMarkdown(blocks));
+  setBlocks = (blocks: ResumeBlock[], recordUndo = true) => {
+    if (recordUndo) {
+      this.pushUndo();
+    }
+    const nextBlocks = blocks.map(sanitizeBlock);
+    this.blocks = nextBlocks;
+    persistBlocks(nextBlocks, blocksToMarkdown(nextBlocks));
     this.syncPreview();
+  }
+
+  undo = () => {
+    const previous = this.undoStack.pop();
+    if (!previous) return;
+    this.redoStack.push(cloneBlocks(this.blocks));
+    this.setBlocks(previous, false);
+  }
+
+  redo = () => {
+    const next = this.redoStack.pop();
+    if (!next) return;
+    this.undoStack.push(cloneBlocks(this.blocks));
+    this.setBlocks(next, false);
   }
 
   addBlock = (block: ResumeBlock, index?: number) => {

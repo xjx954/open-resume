@@ -104,7 +104,7 @@ async function getBrowser() {
 }
 
 app.post('/api/pdf', async (req, res) => {
-  const { htmlContent, theme, themeColor, isOnePage, isMark } = req.body;
+  const { htmlContent, theme, themeColor, isOnePage, isMark, watermarkText } = req.body;
 
   if (!htmlContent) {
     return res.status(400).json({ message: '缺少 htmlContent' });
@@ -154,8 +154,9 @@ app.post('/api/pdf', async (req, res) => {
     });
 
     // Add watermark if requested
-    if (isMark) {
-      await page.evaluate(() => {
+    const resolvedWatermarkText = typeof watermarkText === 'string' ? watermarkText : 'Open Resume';
+    if (isMark && resolvedWatermarkText.trim()) {
+      await page.evaluate((text) => {
         const watermark = document.createElement('div');
         watermark.style.cssText =
           'position:fixed;top:0;left:0;width:100%;height:100%;' +
@@ -164,12 +165,14 @@ app.post('/api/pdf', async (req, res) => {
           encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200">' +
             '<text x="50%" y="50%" font-size="18" fill="rgba(0,0,0,0.06)"' +
-            ' text-anchor="middle" transform="rotate(-30, 150, 100)">Open Resume</text>' +
+            ' text-anchor="middle" transform="rotate(-30, 150, 100)">' +
+            text.replace(/[<>&"]/g, '') +
+            '</text>' +
             '</svg>'
           ) +
           '");';
         document.body.appendChild(watermark);
-      });
+      }, resolvedWatermarkText);
     }
 
     const pdfOptions = {

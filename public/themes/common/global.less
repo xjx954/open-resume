@@ -28,6 +28,7 @@
     display: flex;
     flex-direction: column;
     padding: 60px 0 28px;
+    position: relative; // anchor for absolute-positioned photo
   }
 
   .h2_block {
@@ -210,6 +211,19 @@
   // ── Images ──
   img {
     max-width: 400px;
+  }
+
+  // ── Resume photo (header block) ──
+  img.resume-photo {
+    position: absolute;
+    top: 14px;
+    right: @h-gutter;
+    width: 80px;
+    height: 108px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    max-width: none;
   }
 
   // ── Legacy .title container (deprecated, kept for compat) ──

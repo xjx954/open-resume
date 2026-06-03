@@ -7,6 +7,8 @@ const ICON_OPTIONS = [
   { value: 'email', label: '邮箱' },
   { value: 'phone', label: '电话' },
   { value: 'github', label: 'GitHub' },
+  { value: 'linkedin', label: 'LinkedIn' },
+  { value: 'website', label: '个人网站' },
   { value: 'blog', label: '博客' },
   { value: 'juejin', label: '掘金' },
   { value: 'zhihu', label: '知乎' },

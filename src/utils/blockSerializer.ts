@@ -32,6 +32,7 @@ function sanitizeHeaderData(data: HeaderData): HeaderData {
   return {
     name: sanitizeText(data.name),
     title: sanitizeText(data.title),
+    photo: data.photo, // preserve photo (data URL, not user-entered text)
   };
 }
 
@@ -89,10 +90,17 @@ export function blockToMarkdown(block: ResumeBlock): string {
   switch (block.type) {
     case 'header': {
       const d = block.data as HeaderData;
+      const lines: string[] = [`# ${d.name}`];
       if (d.title) {
-        return `# ${d.name}\n\n${d.title}`;
+        lines.push('', d.title);
       }
-      return `# ${d.name}`;
+      // Serialize photo as raw HTML img tag so markdown-it preserves it
+      // as a block-level element (not wrapped in <p>).
+      // CSS selectors like .h1_block > img can then target it directly.
+      if (d.photo) {
+        lines.push('', `<img class="resume-photo" src="${d.photo}" alt="photo">`);
+      }
+      return lines.join('\n');
     }
     case 'two-column': {
       const d = block.data as TwoColumnData;
@@ -220,6 +228,25 @@ export function markdownToBlocks(md: string): ResumeBlock[] {
         } else {
           i++;
         }
+
+        // Check for an optional photo line after the title
+        // (raw <img> tag or markdown image syntax)
+        while (i < rawLines.length && !rawLines[i].trim()) {
+          i++;
+        }
+        if (i < rawLines.length) {
+          const photoLine = rawLines[i].trim();
+          const imgTagMatch = photoLine.match(/<img[^>]+src="([^"]*)"[^>]*>/i);
+          const mdImgMatch = photoLine.match(/^!\[.*?\]\((.*?)\)$/);
+          if (imgTagMatch) {
+            headerData.photo = imgTagMatch[1];
+            i++;
+          } else if (mdImgMatch) {
+            headerData.photo = mdImgMatch[1];
+            i++;
+          }
+        }
+
         blocks.push({
           id: generateId(),
           type: 'header',

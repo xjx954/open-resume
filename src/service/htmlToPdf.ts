@@ -7,6 +7,7 @@ export interface PdfParams {
     theme: string
     themeColor: string
     isMark: boolean
+    watermarkText?: string
     isOnePage: boolean
     pages: string
 }

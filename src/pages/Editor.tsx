@@ -59,8 +59,13 @@ const Editor: React.FC = observer(() => {
   useEffect(() => {
     return () => {
       debouncedOnChange.cancel();
+      if (timerSave) {
+        clearTimeout(timerSave);
+        timerSave = null;
+      }
+      templateStore.setEditorRef(null);
     };
-  }, [debouncedOnChange]);
+  }, [debouncedOnChange, templateStore]);
 
   return (
     <>
