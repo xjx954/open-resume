@@ -1,4 +1,5 @@
 import { AiConfig, AiTaskType } from "@src/types/ai";
+import { assertAiConfigReady } from "./aiConfig";
 
 const taskPrompts: Record<AiTaskType, string> = {
   polish:
@@ -10,6 +11,9 @@ const taskPrompts: Record<AiTaskType, string> = {
   ats_keywords:
     "你是一名 ATS 关键词优化顾问。请基于简历和岗位 JD 输出关键词建议、缺失能力点、可插入的简历 bullet。使用清晰的 Markdown 分组输出。",
 };
+
+const inlineRewritePrompt =
+  "你是一名专业中文简历写作顾问。请只改写用户选中的简历片段，让表达更清晰、更具体、更结果导向。不要编造经历或数字。直接输出改写后的单段文本，不要解释。";
 
 interface ChatCompletionResponse {
   choices?: Array<{
@@ -36,9 +40,7 @@ export async function runResumeAiTask(
   const baseURL = config.baseURL.trim();
   const model = config.model.trim();
 
-  if (!apiKey || !baseURL || !model) {
-    throw new Error("请先填写 API Key、Base URL 和模型名称。");
-  }
+  assertAiConfigReady(config);
 
   const response = await fetch(joinUrl(baseURL), {
     method: "POST",
@@ -74,6 +76,60 @@ export async function runResumeAiTask(
   }
 
   const content = data.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error("AI 未返回有效内容。");
+  }
+  return content;
+}
+
+export async function runInlineRewrite(
+  selectedText: string,
+  context: string,
+  config: AiConfig
+) {
+  const apiKey = config.apiKey.trim();
+  const baseURL = config.baseURL.trim();
+  const model = config.model.trim();
+
+  if (!selectedText.trim()) {
+    throw new Error("请先选中需要润色的文字。");
+  }
+  assertAiConfigReady(config);
+
+  const response = await fetch(joinUrl(baseURL), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.35,
+      messages: [
+        {
+          role: "system",
+          content: inlineRewritePrompt,
+        },
+        {
+          role: "user",
+          content: [
+            "当前编辑位置：",
+            context || "简历块编辑器",
+            "",
+            "需要润色的文字：",
+            selectedText,
+          ].join("\n"),
+        },
+      ],
+    }),
+  });
+
+  const data: ChatCompletionResponse = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error?.message || `AI 请求失败：HTTP ${response.status}`);
+  }
+
+  const content = data.choices?.[0]?.message?.content?.trim();
   if (!content) {
     throw new Error("AI 未返回有效内容。");
   }

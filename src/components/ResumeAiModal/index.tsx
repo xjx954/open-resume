@@ -1,49 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { Alert, Button, Input, message, Modal, Select, Space, Tabs } from "antd";
-import { AiConfig, AiTaskOption, AiTaskType } from "@src/types/ai";
+import { Button, Input, message, Modal, Select, Space } from "antd";
+import { AiTaskOption, AiTaskType } from "@src/types/ai";
 import { runResumeAiTask } from "@src/service/ai";
+import { isAiConfigError, loadAiConfig } from "@src/service/aiConfig";
 import "./index.less";
 
 const { TextArea } = Input;
-
-const AI_CONFIG_KEY = "open-resume-ai-config";
-
-const defaultConfig: AiConfig = {
-  apiKey: "",
-  baseURL: "https://api.openai.com/v1",
-  model: "gpt-4o-mini",
-};
-
-const providerPresets = [
-  {
-    key: "openai",
-    label: "OpenAI",
-    baseURL: "https://api.openai.com/v1",
-    model: "gpt-4o-mini",
-    helpUrl: "https://platform.openai.com/api-keys",
-  },
-  {
-    key: "deepseek",
-    label: "DeepSeek V3",
-    baseURL: "https://api.deepseek.com/v1",
-    model: "deepseek-chat",
-    helpUrl: "https://platform.deepseek.com/api_keys",
-  },
-  {
-    key: "qwen",
-    label: "通义千问",
-    baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
-    model: "qwen-plus",
-    helpUrl: "https://bailian.console.aliyun.com/",
-  },
-  {
-    key: "glm",
-    label: "智谱 GLM",
-    baseURL: "https://open.bigmodel.cn/api/paas/v4",
-    model: "glm-4",
-    helpUrl: "https://open.bigmodel.cn/usercenter/apikeys",
-  },
-];
 
 const taskOptions: AiTaskOption[] = [
   {
@@ -68,21 +30,13 @@ const taskOptions: AiTaskOption[] = [
   },
 ];
 
-function loadConfig(): AiConfig {
-  try {
-    const config = localStorage.getItem(AI_CONFIG_KEY);
-    return config ? { ...defaultConfig, ...JSON.parse(config) } : defaultConfig;
-  } catch {
-    return defaultConfig;
-  }
-}
-
 interface ResumeAiModalProps {
   visible: boolean;
   markdown: string;
   blockMode?: boolean;
   onCancel: () => void;
   onApply: (content: string, mode: "insert" | "replace") => void;
+  onOpenSettings: () => void;
 }
 
 const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
@@ -91,10 +45,10 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
   blockMode,
   onCancel,
   onApply,
+  onOpenSettings,
 }) => {
   const [taskType, setTaskType] = useState<AiTaskType>("polish");
   const [jobDescription, setJobDescription] = useState("");
-  const [config, setConfig] = useState<AiConfig>(() => loadConfig());
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -103,27 +57,6 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
     [taskType]
   );
 
-  const updateConfig = (key: keyof AiConfig, value: string) => {
-    const nextConfig = {
-      ...config,
-      [key]: value,
-    };
-    setConfig(nextConfig);
-    localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(nextConfig));
-  };
-
-  const applyProviderPreset = (presetKey: string) => {
-    const preset = providerPresets.find(item => item.key === presetKey);
-    if (!preset) return;
-    const nextConfig = {
-      ...config,
-      baseURL: preset.baseURL,
-      model: preset.model,
-    };
-    setConfig(nextConfig);
-    localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(nextConfig));
-  };
-
   const runTask = async () => {
     setLoading(true);
     try {
@@ -131,12 +64,23 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
         taskType,
         markdown,
         jobDescription,
-        config
+        loadAiConfig()
       );
       setResult(content);
       message.success("AI 结果已生成");
     } catch (e: any) {
-      message.error(e?.message || "AI 请求失败，请检查配置后重试。");
+      const errorMessage = e?.message || "AI 请求失败，请检查配置后重试。";
+      if (isAiConfigError(e)) {
+        Modal.confirm({
+          title: "请先配置 AI 服务",
+          content: "前往设置中的 AI 服务配置，填写 API Key、Base URL 和 Model 后即可使用 AI 助手。",
+          okText: "打开设置",
+          cancelText: "稍后再说",
+          onOk: onOpenSettings,
+        });
+      } else {
+        message.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -149,7 +93,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
 
   return (
     <Modal
-      title="AI 简历优化"
+      title="AI 助手"
       visible={visible}
       onCancel={onCancel}
       footer={null}
@@ -157,92 +101,33 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
       destroyOnClose={false}
     >
       <div className="resume-ai">
-        <Tabs defaultActiveKey="task">
-          <Tabs.TabPane tab="优化任务" key="task">
-            <div className="resume-ai__section">
-              <label>任务类型</label>
-              <Select
-                value={taskType}
-                onChange={setTaskType}
-                style={{ width: "100%" }}
-              >
-                {taskOptions.map((item) => (
-                  <Select.Option value={item.type} key={item.type}>
-                    {item.title}
-                  </Select.Option>
-                ))}
-              </Select>
-              <p>{currentTask.description}</p>
-            </div>
-            <div className="resume-ai__section">
-              <label>岗位 JD（匹配 JD / ATS 建议时建议填写）</label>
-              <TextArea
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                rows={5}
-                placeholder="粘贴目标岗位描述、任职要求或招聘 JD"
-              />
-            </div>
-            <Button type="primary" loading={loading} onClick={runTask}>
-              生成优化结果
-            </Button>
-          </Tabs.TabPane>
-          <Tabs.TabPane tab="模型配置" key="config">
-            <div className="resume-ai__section">
-              <label>服务商预设</label>
-              <Select
-                placeholder="选择后自动填入 Base URL 和 Model"
-                style={{ width: "100%" }}
-                onChange={applyProviderPreset}
-              >
-                {providerPresets.map((item) => (
-                  <Select.Option value={item.key} key={item.key}>
-                    {item.label} - {item.model}
-                  </Select.Option>
-                ))}
-              </Select>
-              <div style={{ marginTop: 8 }}>
-                {providerPresets.map((item, index) => (
-                  <React.Fragment key={item.key}>
-                    {index > 0 && <span style={{ color: "#d1d5db", margin: "0 6px" }}>/</span>}
-                    <a href={item.helpUrl} target="_blank" rel="noreferrer">
-                      {item.label} Key
-                    </a>
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-            <Alert
-              type="warning"
-              showIcon
-              message="API Key 会保存在本机浏览器 localStorage 中。建议使用有额度限制的 Key，不要填入主账号高权限 Key。"
-            />
-            <div className="resume-ai__section">
-              <label>API Key</label>
-              <Input.Password
-                value={config.apiKey}
-                onChange={(e) => updateConfig("apiKey", e.target.value)}
-                placeholder="sk-..."
-              />
-            </div>
-            <div className="resume-ai__section">
-              <label>Base URL</label>
-              <Input
-                value={config.baseURL}
-                onChange={(e) => updateConfig("baseURL", e.target.value)}
-                placeholder="https://api.openai.com/v1"
-              />
-            </div>
-            <div className="resume-ai__section">
-              <label>Model</label>
-              <Input
-                value={config.model}
-                onChange={(e) => updateConfig("model", e.target.value)}
-                placeholder="gpt-4o-mini / deepseek-chat / qwen-plus"
-              />
-            </div>
-          </Tabs.TabPane>
-        </Tabs>
+        <div className="resume-ai__section">
+          <label>任务类型</label>
+          <Select
+            value={taskType}
+            onChange={setTaskType}
+            style={{ width: "100%" }}
+          >
+            {taskOptions.map((item) => (
+              <Select.Option value={item.type} key={item.type}>
+                {item.title}
+              </Select.Option>
+            ))}
+          </Select>
+          <p>{currentTask.description}</p>
+        </div>
+        <div className="resume-ai__section">
+          <label>岗位 JD（匹配 JD / ATS 建议时建议填写）</label>
+          <TextArea
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            rows={5}
+            placeholder="粘贴目标岗位描述、任职要求或招聘 JD"
+          />
+        </div>
+        <Button type="primary" loading={loading} onClick={runTask}>
+          生成优化结果
+        </Button>
         <div className="resume-ai__result">
           <div className="resume-ai__result-title">AI 结果</div>
           <TextArea

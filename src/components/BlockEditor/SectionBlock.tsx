@@ -1,10 +1,26 @@
 import React, { useState } from 'react';
 import { Input, Select } from 'antd';
-import { PlusOutlined, CloseOutlined, DownOutlined, RightOutlined } from '@ant-design/icons';
+import { PlusOutlined, CloseOutlined, DownOutlined, RightOutlined, UpOutlined } from '@ant-design/icons';
 import { SectionData, SectionItem, SectionEntry } from '@src/types/resume';
 
 function generateId(): string {
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+}
+
+export function reorderEntries(entries: SectionEntry[], fromIndex: number, toIndex: number) {
+  if (
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= entries.length ||
+    toIndex >= entries.length ||
+    fromIndex === toIndex
+  ) {
+    return [...entries];
+  }
+  const next = [...entries];
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, moved);
+  return next;
 }
 
 interface Props {
@@ -94,11 +110,23 @@ const ItemEditor: React.FC<ItemEditorProps> = ({ items, onChange }) => {
 
 interface EntryCardProps {
   entry: SectionEntry;
+  index: number;
+  total: number;
   onChange: (entry: SectionEntry) => void;
   onRemove: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }
 
-const EntryCard: React.FC<EntryCardProps> = ({ entry, onChange, onRemove }) => {
+const EntryCard: React.FC<EntryCardProps> = ({
+  entry,
+  index,
+  total,
+  onChange,
+  onRemove,
+  onMoveUp,
+  onMoveDown,
+}) => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -117,6 +145,24 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, onChange, onRemove }) => {
           {collapsed && (
             <span className="block-entry-card__count">{entry.items.length} 条</span>
           )}
+        </div>
+        <div className="block-entry-card__sort-actions" onClick={e => e.stopPropagation()}>
+          <button
+            type="button"
+            disabled={index === 0}
+            onClick={onMoveUp}
+            aria-label="上移条目"
+          >
+            <UpOutlined />
+          </button>
+          <button
+            type="button"
+            disabled={index === total - 1}
+            onClick={onMoveDown}
+            aria-label="下移条目"
+          >
+            <DownOutlined />
+          </button>
         </div>
         <button
           type="button"
@@ -195,6 +241,13 @@ const SectionBlock: React.FC<Props> = ({ data, onChange }) => {
     });
   };
 
+  const moveEntry = (fromIndex: number, toIndex: number) => {
+    onChange({
+      ...safeData,
+      entries: reorderEntries(safeData.entries, fromIndex, toIndex),
+    });
+  };
+
   return (
     <div>
       <div className="block-field">
@@ -237,8 +290,12 @@ const SectionBlock: React.FC<Props> = ({ data, onChange }) => {
           <EntryCard
             key={entry.id}
             entry={entry}
+            index={i}
+            total={safeData.entries.length}
             onChange={e => updateEntry(i, e)}
             onRemove={() => removeEntry(i)}
+            onMoveUp={() => moveEntry(i, i - 1)}
+            onMoveDown={() => moveEntry(i, i + 1)}
           />
         ))}
 

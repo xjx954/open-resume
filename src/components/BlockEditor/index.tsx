@@ -42,6 +42,7 @@ import TwoColumnBlock from './TwoColumnBlock';
 import SectionBlock from './SectionBlock';
 import RawMarkdownBlock from './RawMarkdownBlock';
 import AddBlockMenu from './AddBlockMenu';
+import InlineAiRewrite from './InlineAiRewrite';
 import './BlockEditor.less';
 
 // ============================================================
@@ -521,6 +522,7 @@ const BlockEditor: React.FC = observer(() => {
       </DndContext>
 
       <AddBlockMenu />
+      <InlineAiRewrite />
     </div>
   );
 });

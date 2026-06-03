@@ -22,4 +22,17 @@ describe("template gallery data", () => {
     expect(resolveThemeId("formal-cn")).toBe("formal-cn");
     expect(resolveThemeId("legacy-missing-theme")).toBe("default");
   });
+
+  it("covers the P0 boutique template scenarios", () => {
+    const titles = templates.map((template) => template.title).join(" ");
+    const roles = templates.map((template) => template.role).join(" ");
+    const tags = templates.flatMap((template) => template.tags).join(" ");
+
+    expect(titles).toContain("极简");
+    expect(titles).toContain("双栏");
+    expect(roles).toContain("校招");
+    expect(roles).toContain("技术");
+    expect(tags).toContain("ATS");
+    expect(templates.filter((template) => template.featured)).toHaveLength(3);
+  });
 });

@@ -33,6 +33,7 @@ import { themes } from '@utils/const';
 import Shortcuts from "@src/components/Shortcuts";
 import History from "@src/components/History";
 import ResumeAiModal from "@src/components/ResumeAiModal";
+import AiSettingsModal from "@src/components/AiSettingsModal";
 import { HeaderData } from "@src/types/resume";
 
 const is_update = +(localStorage.getItem(LOCAL_STORE.MD_UPDATE_LOG) || 0) >= UPDATE_LOG_VERSION ? false : true;
@@ -60,6 +61,7 @@ const HeaderBar = observer(() => {
   const [isUpdateVisible, setIsUpdateVisible] = useState(is_update);
   const [isThemeLoading, setIsThemeLoading] = useState(false);
   const [isAiVisible, setIsAiVisible] = useState(false);
+  const [isAiSettingsVisible, setIsAiSettingsVisible] = useState(false);
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
   const [historyVisible, setHistoryVisible] = useState(false);
 
@@ -226,6 +228,12 @@ const HeaderBar = observer(() => {
     return () => window.removeEventListener('open-resume:export-pdf', openExport);
   }, []);
 
+  useEffect(() => {
+    const openAiSettings = () => setIsAiSettingsVisible(true);
+    window.addEventListener('open-resume:ai-settings', openAiSettings);
+    return () => window.removeEventListener('open-resume:ai-settings', openAiSettings);
+  }, []);
+
   // ------ Overflow menu (File, Templates, Shortcuts, History) ------
 
   const overflowMenu = (
@@ -256,6 +264,10 @@ const HeaderBar = observer(() => {
       </Menu.Item>
       <Menu.Item key="history" onClick={() => setHistoryVisible(true)}>
         历史记录
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item key="ai-settings" onClick={() => setIsAiSettingsVisible(true)}>
+        <SettingOutlined style={{ marginRight: 8 }} />AI 服务配置
       </Menu.Item>
     </Menu>
   );
@@ -340,7 +352,7 @@ const HeaderBar = observer(() => {
           onClick={() => setIsAiVisible(true)}
         >
           <RobotOutlined />
-          <span>AI 优化</span>
+          <span>AI 助手</span>
         </button>
 
         <button
@@ -451,6 +463,11 @@ const HeaderBar = observer(() => {
         blockMode={!templateStore.editorRef}
         onCancel={() => setIsAiVisible(false)}
         onApply={applyAiResult}
+        onOpenSettings={() => setIsAiSettingsVisible(true)}
+      />
+      <AiSettingsModal
+        visible={isAiSettingsVisible}
+        onCancel={() => setIsAiSettingsVisible(false)}
       />
       <Shortcuts visible={shortcutsVisible} onClose={() => setShortcutsVisible(false)} />
       <History visible={historyVisible} onClose={() => setHistoryVisible(false)} />
