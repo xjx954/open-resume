@@ -180,66 +180,65 @@
 }
 .rs-view {
   background: #fff;
+  color: #27272a;
   display: flex;
   flex-direction: column;
 }
 .rs-view .lr-container {
-  padding-top: 10px;
-  padding-bottom: 20px;
+  padding-top: 12px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e7e5e4;
 }
 .rs-view .h1_block {
-  padding-top: 0;
-  padding-bottom: 0;
-  color: #fff;
-  background: linear-gradient(#f9855d 5%, #fdd288 20%, white);
-}
-.rs-view .h1_block .h2_block:first-of-type {
-  margin-top: 20px;
+  padding: 44px 0 22px;
+  color: #27272a;
+  background: #fff;
+  border-top: 6px solid #e7e5e4;
 }
 .rs-view h1 {
-  font-size: 28px;
-  color: #fff;
-  padding: 20px 0;
+  font-size: 32px;
+  color: #27272a;
+  padding: 0 0 8px;
 }
 .rs-view .resume-section-title,
 .rs-view h2 {
-  color: #fff;
-  background-color: #fdd288;
-  border-radius: 5px;
-  padding: 4px 10px;
-  margin-bottom: 5px;
-  text-align: center;
-  width: auto;
-  min-width: 100px;
+  color: #3f3f46;
+  border-bottom: 1px solid #a8a29e;
+  padding: 0 0 6px;
+  margin-bottom: 8px;
 }
 .rs-view .entry-title,
 .rs-view h3 {
-  color: #333;
+  color: #27272a;
 }
 .rs-view p {
-  color: #333;
+  color: #52525b;
 }
 .rs-view ul li,
 .rs-view ol li {
-  color: #333;
+  color: #52525b;
 }
 .rs-view a {
-  color: #fff;
+  color: #555555;
 }
 .rs-view a:hover,
 .rs-view a:active {
-  color: #d1d0d0;
+  color: #27272a;
 }
 .rs-view .icon {
-  fill: #fff;
+  fill: #555555;
+}
+.rs-view code {
+  color: #44403c;
+  background: #f5f5f4;
 }
 .rs-view .entry-date {
-  color: #666;
+  color: #78716c;
 }
 .rs-view .title {
   margin-top: 10px;
   margin-left: 50px;
   margin-right: 50px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #e7e5e4;
 }

@@ -1,14 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Empty, Input, Modal, Popconfirm, Select, Tag } from "antd";
+import { Button, Empty, Input, Modal, Popconfirm, Tag } from "antd";
+import { DownloadOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import { useHistory } from "react-router-dom";
-import dayjs from "dayjs";
 import axios from "axios";
 import { downloadDirect } from "@utils/helper";
-import { renderViewStyle } from "@src/utils/global";
 import { useStores } from "@src/store";
 import { LOCAL_STORE, themes } from "@src/utils/const";
-import { getTheme } from "@utils/changeThemes";
 import { TemplateItem, TemplateWithTheme } from "@src/types/template";
+import TemplatePreview from "@src/components/TemplatePreview";
 import "./Square.less";
 
 const categoryLabels: Record<string, string> = {
@@ -16,8 +15,15 @@ const categoryLabels: Record<string, string> = {
   product: "产品运营",
   design: "设计创意",
   data: "数据分析",
-  student: "应届生",
-  general: "通用模板",
+  student: "学生校招",
+  general: "通用正式",
+};
+
+const filterLabels: Record<string, string> = {
+  all: "全部",
+  tech: "技术",
+  student: "学生/科研",
+  general: "通用/正式",
 };
 
 const Square = () => {
@@ -25,17 +31,13 @@ const Square = () => {
   const [keyword, setKeyword] = useState("");
   const [category, setCategory] = useState("all");
   const [template, setTemplate] = useState<TemplateWithTheme | null>(null);
+  const [fullscreenTemplate, setFullscreenTemplate] = useState<TemplateWithTheme | null>(null);
   const { templateStore, globalStore: { setCurTab } } = useStores();
   const { setColor, setMdContent, setTheme } = templateStore;
   const history = useHistory();
 
-  const handleCancel = useCallback(() => {
-    setTemplate(null);
-  }, []);
-
-  const handleUse = useCallback(() => {
-    if (!template) return;
-    const { theme, themeColor, template: md } = template;
+  const applyTemplate = useCallback((nextTemplate: TemplateWithTheme) => {
+    const { theme, themeColor, template: md } = nextTemplate;
     setTheme(theme);
     localStorage.setItem(LOCAL_STORE.MD_THEME, theme);
     setColor(themeColor);
@@ -44,14 +46,19 @@ const Square = () => {
     localStorage.setItem(LOCAL_STORE.MD_RESUME, md);
     history.push("/editor");
     setCurTab("/editor");
+  }, [history, setColor, setCurTab, setMdContent, setTheme]);
 
-    setTimeout(async () => {
-      templateStore.editorRef?.setValue(md);
-      await getTheme(theme);
-      document.body.style.setProperty("--bg", themeColor);
-      renderViewStyle(themeColor, md);
-    }, 300);
-  }, [history, setColor, setCurTab, setMdContent, setTheme, template, templateStore]);
+  const handleUse = useCallback(() => {
+    if (!template) return;
+    applyTemplate(template);
+  }, [applyTemplate, template]);
+
+  const downloadMarkdown = useCallback((item: TemplateWithTheme) => {
+    const file = new Blob([item.template]);
+    const url = URL.createObjectURL(file);
+    downloadDirect(url, `${item.title}.md`);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, []);
 
   useEffect(() => {
     const queryTemplate = async () => {
@@ -62,14 +69,14 @@ const Square = () => {
           themes.find((theme) => item.theme === theme.id)?.defaultColor ||
           themes[0].defaultColor,
       }));
-      setList(resultList);
+      setList(resultList.sort((a, b) => a.previewPriority - b.previewPriority));
     };
     queryTemplate();
   }, []);
 
   const categories = useMemo(() => {
     const values = Array.from(new Set(list.map((item) => item.category)));
-    return values.filter(Boolean);
+    return ["all", ...values.filter(Boolean)];
   }, [list]);
 
   const filteredList = useMemo(() => {
@@ -81,7 +88,10 @@ const Square = () => {
         item.role,
         item.description,
         item.category,
+        item.audience,
         ...(item.tags || []),
+        ...(item.bestFor || []),
+        ...(item.scenarios || []),
       ]
         .join(" ")
         .toLowerCase();
@@ -89,86 +99,162 @@ const Square = () => {
     });
   }, [category, keyword, list]);
 
-  const recommendedList = filteredList.filter((item) => item.recommended);
-  const normalList = filteredList.filter((item) => !item.recommended);
-  const displayList = [...recommendedList, ...normalList];
+  const featuredList = useMemo(
+    () => list.filter((item) => item.featured).slice(0, 3),
+    [list]
+  );
 
   return (
     <div className="rs-square-page">
-      <div className="square-hero">
-        <div>
-          <h1>模板中心</h1>
-          <p>按岗位和经验阶段选择模板，套用后继续在编辑器里调整内容和主题。</p>
+      <section className="square-hero">
+        <div className="square-hero__copy">
+          <h1>选择一份可以直接投递的简历模板</h1>
+          <p>少量精选模板，真实简历预览。先选结构，再进入编辑器改内容。</p>
         </div>
         <Button type="primary" onClick={() => history.push("/editor")}>
           返回编辑器
         </Button>
-      </div>
+      </section>
 
-      <div className="square-toolbar">
-        <Input.Search
-          allowClear
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder="搜索岗位、标签或模板名称"
-        />
-        <Select value={category} onChange={setCategory}>
-          <Select.Option value="all">全部分类</Select.Option>
-          {categories.map((item) => (
-            <Select.Option value={item} key={item}>
-              {categoryLabels[item] || item}
-            </Select.Option>
+      <section className="square-section square-section--featured">
+        <div className="square-section__header">
+          <div>
+            <h2>精选模板</h2>
+            <p>优先打磨的 3 个模板，覆盖通用、互联网技术岗和中文正式场景。</p>
+          </div>
+        </div>
+        <div className="featured-grid">
+          {featuredList.map((item) => (
+            <article className="featured-card" key={item.id}>
+              <div className="featured-card__preview">
+                <TemplatePreview
+                  title={`${item.title}预览`}
+                  markdown={item.template}
+                  theme={item.theme}
+                  themeColor={item.themeColor}
+                  scale={0.31}
+                  mode="thumb"
+                />
+              </div>
+              <div className="featured-card__body">
+                <div className="featured-card__meta">
+                  <Tag color={item.themeColor}>精选</Tag>
+                  <span>{categoryLabels[item.category] || item.category}</span>
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+                <div className="featured-card__actions">
+                  <Button onClick={() => setTemplate(item)} icon={<EyeOutlined />}>
+                    预览模板
+                  </Button>
+                  <Popconfirm
+                    title="确定使用此模板替换当前编辑器内容吗？"
+                    onConfirm={() => applyTemplate(item)}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <Button type="primary">使用模板</Button>
+                  </Popconfirm>
+                </div>
+              </div>
+            </article>
           ))}
-        </Select>
-      </div>
+        </div>
+      </section>
 
-      {displayList.length ? (
-        <div className="rs-square-container">
-          {displayList.map((item) => {
-            return (
-              <div className="rs-square" key={item.id}>
+      <section className="square-section">
+        <div className="square-section__header square-section__header--toolbar">
+          <div>
+            <h2>全部模板</h2>
+            <p>控制在 8 个以内，按内容结构适配不同场景。</p>
+          </div>
+          <div className="square-search">
+            <SearchOutlined />
+            <Input
+              allowClear
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="搜索岗位、标签或模板名称"
+            />
+          </div>
+        </div>
+
+        <div className="square-filter" role="tablist" aria-label="模板分类">
+          {categories.map((item) => (
+            <button
+              type="button"
+              key={item}
+              className={category === item ? "active" : ""}
+              onClick={() => setCategory(item)}
+            >
+              {filterLabels[item] || categoryLabels[item] || item}
+            </button>
+          ))}
+        </div>
+
+        {filteredList.length ? (
+          <div className="rs-square-container">
+            {filteredList.map((item) => (
+              <article className="rs-square" key={item.id}>
                 {item.recommended && <span className="rs-square__badge">推荐</span>}
                 <div className="rs-square__thumb">
-                  <img src={item.thumbnail} alt={item.title} />
+                  <TemplatePreview
+                    title={`${item.title}缩略预览`}
+                    markdown={item.template}
+                    theme={item.theme}
+                    themeColor={item.themeColor}
+                    scale={0.22}
+                    lazy={!item.featured}
+                    mode="thumb"
+                  />
                 </div>
                 <div className="rs-square__body">
+                  <div className="rs-square__eyebrow">{item.role}</div>
                   <h3>{item.title}</h3>
                   <p>{item.description}</p>
                   <div className="rs-square__tags">
-                    <Tag color={item.themeColor}>{categoryLabels[item.category] || item.category}</Tag>
-                    <Tag>{item.level}</Tag>
+                    {item.tags.slice(0, 3).map((tag) => (
+                      <Tag key={tag}>{tag}</Tag>
+                    ))}
                   </div>
                 </div>
-                <div className="rs-square__footer">
-                  <Button size="small" onClick={() => setTemplate(item)}>
-                    查看模板
+                <div className="rs-square__overlay">
+                  <Button onClick={() => setTemplate(item)} icon={<EyeOutlined />}>
+                    预览模板
                   </Button>
+                  <Popconfirm
+                    title="确定使用此模板替换当前编辑器内容吗？"
+                    onConfirm={() => applyTemplate(item)}
+                    okText="确定"
+                    cancelText="取消"
+                  >
+                    <Button type="primary">使用模板</Button>
+                  </Popconfirm>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <Empty description="没有找到匹配模板" />
-      )}
+              </article>
+            ))}
+          </div>
+        ) : (
+          <Empty description="没有找到匹配模板" />
+        )}
+      </section>
 
       {template && (
         <Modal
-          bodyStyle={{ backgroundColor: "#fafafb" }}
-          title={template.title}
+          className="square-preview-modal"
           visible={!!template}
-          width={760}
-          onCancel={handleCancel}
+          width={1120}
+          onCancel={() => setTemplate(null)}
           footer={
             <div className="square-footer">
               <Button
-                onClick={() => {
-                  const file = new Blob([template.template]);
-                  const url = URL.createObjectURL(file);
-                  downloadDirect(url, `${template.title}.md`);
-                }}
+                icon={<DownloadOutlined />}
+                onClick={() => downloadMarkdown(template)}
               >
                 下载 md
+              </Button>
+              <Button onClick={() => setFullscreenTemplate(template)} icon={<EyeOutlined />}>
+                预览全屏
               </Button>
               <Popconfirm
                 title="确定使用此模板替换当前编辑器内容吗？"
@@ -183,40 +269,62 @@ const Square = () => {
         >
           <div className="square-modal">
             <div className="square-modal-left">
-              <img src={template.thumbnail} alt={template.title} />
+              <TemplatePreview
+                title={`${template.title}完整预览`}
+                markdown={template.template}
+                theme={template.theme}
+                themeColor={template.themeColor}
+                scale={0.72}
+                mode="modal"
+              />
             </div>
-            <div className="square-modal-right">
-              <div className="top-info">
-                <img src={template.avatar} alt={template.author} />
-                <div className="top-info-content">
-                  <span className="info-text">作者：{template.author}</span>
-                  <span className="info-text">
-                    更新时间：{dayjs(template.updateTime).format("YYYY-MM-DD")}
-                  </span>
+            <aside className="square-modal-right">
+              <span className="square-modal__label">模板预览</span>
+              <h2>{template.title}</h2>
+              <p>{template.description}</p>
+              <div className="square-modal__section">
+                <h3>适合岗位</h3>
+                <div className="template-chip-list">
+                  {template.bestFor.map((item) => <Tag key={item}>{item}</Tag>)}
                 </div>
               </div>
-              <p className="template-description">{template.description}</p>
-              <div className="top-list">
-                <span className="info-text">
-                  <span className="text">岗位方向</span>
-                  <span className="value">{template.role}</span>
-                </span>
-                <span className="info-text">
-                  <span className="text">主题</span>
-                  <span className="value">{template.theme}</span>
-                </span>
-                <span className="info-text">
-                  <span className="text">收藏</span>
-                  <span className="value">{template.collect}+</span>
-                </span>
+              <div className="square-modal__section">
+                <h3>适合人群</h3>
+                <p>{template.audience}</p>
               </div>
-              <div className="template-tags">
-                {template.tags.map((tag) => (
-                  <Tag key={tag}>{tag}</Tag>
-                ))}
+              <div className="square-modal__section">
+                <h3>推荐场景</h3>
+                <ul>
+                  {template.scenarios.map((item) => <li key={item}>{item}</li>)}
+                </ul>
               </div>
-            </div>
+              <div className="square-modal__section">
+                <h3>模板特点</h3>
+                <ul>
+                  {template.features.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </div>
+            </aside>
           </div>
+        </Modal>
+      )}
+
+      {fullscreenTemplate && (
+        <Modal
+          className="square-fullscreen-modal"
+          visible={!!fullscreenTemplate}
+          footer={null}
+          width="96vw"
+          onCancel={() => setFullscreenTemplate(null)}
+        >
+          <TemplatePreview
+            title={`${fullscreenTemplate.title}全屏预览`}
+            markdown={fullscreenTemplate.template}
+            theme={fullscreenTemplate.theme}
+            themeColor={fullscreenTemplate.themeColor}
+            scale={1}
+            mode="fullscreen"
+          />
         </Modal>
       )}
     </div>

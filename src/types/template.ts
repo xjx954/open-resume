@@ -13,6 +13,12 @@ export interface TemplateItem {
   level: "student" | "junior" | "mid" | "senior" | "general";
   role: string;
   description: string;
+  audience: string;
+  bestFor: string[];
+  scenarios: string[];
+  features: string[];
+  previewPriority: number;
+  featured?: boolean;
   recommended?: boolean;
 }
 

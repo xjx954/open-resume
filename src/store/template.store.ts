@@ -1,10 +1,14 @@
 import { makeAutoObservable } from "mobx";
-import { INIT_COLOR, INIT_CONTENT, LOCAL_STORE, themes } from '@utils/const';
+import { INIT_COLOR, INIT_CONTENT, LOCAL_STORE, resolveThemeId } from '@utils/const';
 import { ResumeEditorRef, setHtmlView } from '@src/utils/global';
 import { ResumeBlock } from '@src/types/resume';
 import { blocksToMarkdown, markdownToBlocks, sanitizeBlock } from '@src/utils/blockSerializer';
 
-const default_theme = localStorage.getItem(LOCAL_STORE.MD_THEME) || themes[0].id;
+const storedTheme = localStorage.getItem(LOCAL_STORE.MD_THEME);
+const default_theme = resolveThemeId(storedTheme);
+if (storedTheme && storedTheme !== default_theme) {
+  localStorage.setItem(LOCAL_STORE.MD_THEME, default_theme);
+}
 
 const localContent = localStorage.getItem(LOCAL_STORE.MD_RESUME);
 

@@ -17,7 +17,11 @@ const Editor: React.FC = observer(() => {
 
   const setRefCallback = useCallback((node: IEditorInstance) => {
     if (node?.editor) {
-      templateStore.setEditorRef(node.editor as ResumeEditorRef)
+      const editor = node.editor as ResumeEditorRef;
+      templateStore.setEditorRef(editor);
+      if (editor.getValue() !== templateStore.mdContent) {
+        editor.setValue(templateStore.mdContent);
+      }
     }
   }, [templateStore])
 

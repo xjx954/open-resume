@@ -2,7 +2,7 @@ export const themes = [
   {
     id: "default",
     defaultColor: "#39393a",
-    name: "默认",
+    name: "极简经典",
     src: "/images/theme-default.svg",
     isColor: true,
     defaultUrl: "",
@@ -10,23 +10,23 @@ export const themes = [
   {
     id: "blue",
     defaultColor: "#5974D4",
-    name: "极简色",
+    name: "蓝色专业",
     src: "/images/theme-blue.svg",
     isColor: true,
     defaultUrl: "",
   },
   {
     id: "orange",
-    defaultColor: "#39393a",
-    name: "朝阳黄",
+    defaultColor: "#555555",
+    name: "双栏信息型",
     src: "/images/theme-orange.svg",
-    isColor: false,
+    isColor: true,
     defaultUrl: "",
   },
   {
     id: "pupple",
-    defaultColor: "#36448f",
-    name: "全彩风",
+    defaultColor: "#4a4a6a",
+    name: "灰紫信息型",
     src: "/images/theme-pupple.svg",
     isColor: true,
     defaultUrl: "",
@@ -41,8 +41,8 @@ export const themes = [
   },
   {
     id: "green",
-    defaultColor: "#1f7a5c",
-    name: "清爽技术",
+    defaultColor: "#2d8a7a",
+    name: "学生/应届生",
     src: "/images/theme-green.svg",
     isColor: true,
     defaultUrl: "",
@@ -50,12 +50,24 @@ export const themes = [
   {
     id: "academic-blue",
     defaultColor: "#2e557a",
-    name: "蓝线校招",
+    name: "科研学术",
     src: "/images/theme-academic-blue.svg",
     isColor: true,
     defaultUrl: "",
   },
+  {
+    id: "formal-cn",
+    defaultColor: "#1a1a2e",
+    name: "中文正式",
+    src: "/images/theme-default.svg",
+    isColor: true,
+    defaultUrl: "",
+  },
 ];
+
+export function resolveThemeId(themeId: string | null | undefined): string {
+  return themes.some((theme) => theme.id === themeId) ? String(themeId) : themes[0].id;
+}
 
 export const LOCAL_STORE = {
   MD_RESUME: "md-resume",

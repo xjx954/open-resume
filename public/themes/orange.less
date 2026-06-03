@@ -1,73 +1,72 @@
 @import "./common/global.less";
 
-// ── Orange theme: 朝阳黄（渐变 header） ──
+// ── Orange theme: 双栏信息型，暖灰强调 ──
 
 .rs-view {
   background: #fff;
+  color: #27272a;
   display: flex;
   flex-direction: column;
 
   .lr-container {
-    padding-top: 10px;
-    padding-bottom: 20px;
+    padding-top: 12px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e7e5e4;
   }
 
   .h1_block {
-    padding-top: 0;
-    padding-bottom: 0;
-    color: #fff;
-    background: linear-gradient(#f9855d 5%, #fdd288 20%, white);
-
-    .h2_block:first-of-type {
-      margin-top: 20px;
-    }
+    padding: 44px 0 22px;
+    color: #27272a;
+    background: #fff;
+    border-top: 6px solid #e7e5e4;
   }
 
   h1 {
-    font-size: 28px;
-    color: #fff;
-    padding: 20px 0;
+    font-size: 32px;
+    color: #27272a;
+    padding: 0 0 8px;
   }
 
   .resume-section-title,
   h2 {
-    color: #fff;
-    background-color: #fdd288;
-    border-radius: 5px;
-    padding: 4px 10px;
-    margin-bottom: 5px;
-    text-align: center;
-    width: auto;
-    min-width: 100px;
+    color: #3f3f46;
+    border-bottom: 1px solid #a8a29e;
+    padding: 0 0 6px;
+    margin-bottom: 8px;
   }
 
   .entry-title,
   h3 {
-    color: #333;
+    color: #27272a;
   }
 
-  p { color: #333; }
+  p { color: #52525b; }
 
   ul li,
   ol li {
-    color: #333;
+    color: #52525b;
   }
 
   a {
-    color: #fff;
+    color: #555555;
     &:hover,
-    &:active { color: #d1d0d0; }
+    &:active { color: #27272a; }
   }
 
-  .icon { fill: #fff; }
+  .icon { fill: #555555; }
 
-  .entry-date { color: #666; }
+  code {
+    color: #44403c;
+    background: #f5f5f4;
+  }
+
+  .entry-date { color: #78716c; }
 
   .title {
     margin-top: 10px;
     margin-left: 50px;
     margin-right: 50px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #e7e5e4;
   }
 }

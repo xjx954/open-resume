@@ -1,73 +1,80 @@
 @import "./common/global.less";
 
-// ── Pupple theme: 全彩深色风 ──
+// ── Pupple theme: 灰紫信息型，低饱和点缀 ──
 
 .rs-view {
   background: #fff;
+  color: #202033;
   display: flex;
   flex-direction: column;
 
   .lr-container {
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding-top: 12px;
+    padding-bottom: 18px;
   }
 
   .h1_block {
-    padding-top: 0;
-    padding-bottom: 0;
-    color: #fff;
-    background: var(--bg);
+    padding: 44px 0 24px;
+    color: #202033;
+    background: #fff;
+    border-top: 8px solid rgba(74, 74, 106, 0.14);
+    border-bottom: 1px solid rgba(74, 74, 106, 0.18);
   }
 
   h1 {
-    font-size: 28px;
-    color: #fff;
-    padding: 30px 0;
+    font-size: 32px;
+    color: #202033;
+    padding: 0 0 8px;
   }
 
   .resume-section-title,
   h2 {
     display: inline-block;
-    color: #fff;
-    border-bottom: 3px solid #ffcab0;
-    padding: 4px 10px;
-    margin-bottom: 6px;
+    color: var(--bg);
+    border-bottom: 2px solid rgba(74, 74, 106, 0.26);
+    padding: 0 2px 5px;
+    margin-bottom: 8px;
   }
 
   .entry-title,
   h3 {
-    color: #fff;
+    color: #202033;
   }
 
-  p { color: #fff; }
+  p { color: #4b5563; }
 
   ul li,
   ol li {
-    color: #fff;
+    color: #4b5563;
   }
 
   .h2_block,
   .h3_block,
   .h4_block,
   .h5_block {
-    color: #fff;
+    color: #202033;
   }
 
   a {
-    color: #fff;
+    color: var(--bg);
     &:hover,
-    &:active { color: #d1d0d0; }
+    &:active { color: #343454; }
   }
 
-  .icon { fill: #fff; }
+  .icon { fill: var(--bg); }
 
-  .entry-date { color: rgba(255, 255, 255, 0.75); }
+  code {
+    color: #343454;
+    background: rgba(74, 74, 106, 0.08);
+  }
+
+  .entry-date { color: #71717a; }
 
   .title {
     margin-top: 10px;
     margin-left: 50px;
     margin-right: 50px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid rgba(74, 74, 106, 0.18);
   }
 }
