@@ -29,4 +29,5 @@ test.html
 test.js
 .eslintcache
 template.md
+AGENTS.md
 templates/*
