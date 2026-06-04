@@ -1,112 +1,121 @@
 # Open Resume
 
-免费开源 Markdown 简历制作工具，支持实时预览、双编辑模式、AI 优化、7 套主题和一键导出 PDF。
+A free, open-source Markdown resume builder with dual editing modes, AI-assisted writing, 5 premium themes, and one-click PDF export.
 
-[English](README.md) | 简体中文
+[简体中文](README.md) | English
 
-## 功能
+## Features
 
-### 编辑
-- **Markdown 编辑器** — 语法高亮 + 实时预览，所见即所得
-- **可视化块编辑器** — 基于 `@dnd-kit` 的拖拽式卡片编辑，支持排序、折叠、复制、删除
-- **导入/导出** — 导入或导出 `.md` 文件，随处可用
+### Editing
+- **Markdown Editor** — Syntax highlighting + live preview
+- **Visual Block Editor** — Drag-and-drop card-based editor with `@dnd-kit`; reorder, collapse, duplicate, or delete blocks
+- **Import/Export** — Import or export `.md` files to keep work portable
+- **Photo Upload** — Resume photo upload with cropping
+- **Undo/Redo** — Built-in edit history with rollback support
 
-### AI 优化
-- **润色** — 优化措辞，提升专业度
-- **匹配 JD** — 针对特定职位描述定制简历
-- **经历量化** — 将模糊描述转化为量化成果
-- **ATS 关键词** — 建议关键词以通过筛选系统
+### AI Assistance
+- **Polish** — Improve phrasing and professionalism
+- **Quantity** — Turn vague descriptions into quantified achievements
+- **JD Match Analysis** — Keyword coverage detection + structured AI report against a job description
+- **Paragraph Diff** — Before/after comparison with one-click apply
 
-*需要在 AI 弹窗中配置 OpenAI 兼容的 API Key。*
+*OpenAI-compatible API support with DeepSeek / Qwen / OpenAI presets, guided setup wizard, and one-click connection test.*
 
-### 主题与导出
-- **7 套视觉主题** — 一键切换，各有独立配色
-- **自定义主题色** — 内置取色器，随心调整强调色
-- **PDF 导出** — 一键生成 PDF，支持单页模式和水印选项
-- **模板集市** — 在 `/square` 浏览和预览全部模板
+### Themes & Export
+- **5 Premium Themes** — Minimal Classic, Blue Professional, Formal Chinese, Two-Column Pro, Academic Blue
+- **Custom Colors** — Built-in color picker for customizable themes
+- **PDF Export** — One-click PDF with single-page mode and watermark options
+- **Template Gallery** — Browse and preview all templates at `/square`
 
-### 实用功能
-- **编辑历史** — 从 localStorage 历史中恢复之前版本
-- **图标快捷输入** — 通过 `icon:xxx` 语法插入邮箱、电话、GitHub 等联系图标
+### More
+- **Edit History** — Restore previous versions from localStorage history
+- **Icon Shortcuts** — Insert contact icons (email, phone, GitHub, etc.) with `icon:xxx` syntax
+- **Two-Column Layout** — `::: sidebar / ::: main` container syntax for split-column resumes
 
-## 快速开始
+## Quick Start
 
 ```bash
-npm install        # postinstall 自动安装后端依赖
-npm start          # 前端 :3000 + PDF 后端 :4000
-npm run start:web  # 仅启动前端
+npm install        # auto-installs server deps via postinstall
+npm start          # frontend :3000 + PDF backend :4000
+npm run start:web  # frontend only
 ```
 
-浏览器打开 [http://localhost:3000](http://localhost:3000)。
+Open [http://localhost:3000](http://localhost:3000).
 
-### PDF 后端
+### PDF Backend
 
-PDF 导出需要 Puppeteer（无头 Chrome）。首次安装时自动下载 Chromium（约 300MB）。
+PDF export uses Puppeteer (headless Chrome). Chromium is downloaded on first install (~300MB).
 
-| 服务   | 端口 | 接口             |
-| ------ | ---- | ---------------- |
-| 前端   | 3000 | React 开发服务器 |
-| PDF API | 4000 | `POST /api/pdf` |
+| Service  | Port | Endpoint       |
+| -------- | ---- | -------------- |
+| Frontend | 3000 | React dev server |
+| PDF API  | 4000 | `POST /api/pdf` |
 
-在 `.env` 中配置后端地址（复制 `.env.example`）：
+Configure in `.env` (copy `.env.example`):
 
 ```
 REACT_APP_PDF_API_URL=http://localhost:4000/api/pdf
 ```
 
-## 项目结构
+## Project Structure
 
 ```
 src/
 ├── components/
-│   ├── BlockEditor/        # 可视化拖拽块编辑器
-│   ├── HeaderBar/          # 编辑工具栏（导出、主题、AI、历史）
-│   ├── HeaderCommonBar/    # 全局导航栏
-│   ├── EditorToolbar/      # 预览缩放控件
-│   ├── ResumeAiModal/      # AI 优化弹窗
-│   ├── History/            # 版本历史浏览
+│   ├── BlockEditor/         # Visual drag-and-drop block editor + inline AI rewrite
+│   ├── HeaderBar/           # Editor toolbar (export, theme, AI, history)
+│   ├── HeaderCommonBar/     # Site navigation header
+│   ├── EditorToolbar/       # Preview zoom controls
+│   ├── ResumeAiModal/       # AI assistant modal (polish / match / quantify)
+│   ├── AiSettingsModal/     # AI setup wizard (select provider → paste key → test)
+│   ├── TemplatePreview/     # Template preview component
+│   ├── History/             # Version history browser
 │   └── ...
 ├── pages/
-│   ├── Home.tsx            # 首页
-│   ├── Main.tsx            # 编辑器分栏布局
-│   ├── Square.tsx          # 模板集市
-│   └── View.tsx            # 实时 HTML 预览渲染
+│   ├── Home.tsx             # Landing page
+│   ├── Main.tsx             # Editor split-pane layout (Markdown + preview)
+│   ├── Square.tsx           # Template marketplace
+│   └── View.tsx             # Live HTML preview renderer
 ├── store/
-│   └── template.store.ts   # MobX 状态（块、主题、颜色、预览）
+│   └── template.store.ts    # MobX state (blocks, theme, color, preview)
 ├── utils/
-│   ├── helper.ts           # markdown-it 配置 + 自定义渲染器
-│   ├── blockSerializer.ts  # Markdown ↔ ResumeBlock[] 转换
-│   └── global.ts           # 渲染管线 + 历史持久化
+│   ├── helper.ts            # markdown-it config + custom renderers
+│   ├── blockSerializer.ts   # Markdown ↔ ResumeBlock[] converter
+│   ├── aiApply.ts           # AI result one-click apply
+│   ├── markdownDiff.ts      # AI before/after paragraph diff
+│   └── global.ts            # Render pipeline + history persistence
 ├── types/
-│   └── resume.ts           # ResumeBlock, SectionData 等类型定义
+│   └── resume.ts            # ResumeBlock, SectionData, etc.
 └── service/
-    ├── ai.ts               # OpenAI 兼容的对话补全
-    └── htmlToPdf.ts        # PDF 生成代理
+    ├── ai.ts                # OpenAI-compatible chat completions
+    ├── aiConfig.ts          # AI config persistence + connection test
+    ├── jobMatchAnalysis.ts  # JD keyword extraction & analysis
+    └── htmlToPdf.ts         # PDF generation proxy
 ```
 
-## 技术栈
+## Tech Stack
 
-| 层级     | 技术                                     |
-| -------- | ---------------------------------------- |
-| 框架     | React 17 + TypeScript                    |
-| 状态管理 | MobX                                     |
-| UI 组件  | Ant Design                               |
-| Markdown | markdown-it（自定义 heading-container + emoji 插件） |
-| 代码编辑 | CodeMirror (`@uiw/react-codemirror`)     |
-| 拖拽     | `@dnd-kit/core` + `@dnd-kit/sortable`  |
-| PDF      | Puppeteer（后端无头 Chrome）             |
-| 构建     | Webpack 4（ejected CRA）                 |
-| 样式     | Less（7 套主题共享 `common/global.less` 排版基础） |
+| Layer | Technology |
+| ----- | ---------- |
+| Framework | React 17 + TypeScript |
+| State | MobX |
+| UI | Ant Design |
+| Markdown | markdown-it (custom heading-container + emoji plugins) |
+| Code Editor | CodeMirror (`@uiw/react-codemirror`) |
+| DnD | `@dnd-kit/core` + `@dnd-kit/sortable` |
+| PDF | Puppeteer (backend headless Chrome) |
+| Build | Webpack 4 (ejected CRA) |
+| Styles | Less (5 themes share `common/global.less` foundation) |
 
-## 开发
+## Development
 
 ```bash
 npm install
-npm start                  # 开发服务器，支持热重载
+npm start                   # dev server with hot reload
 
-npm test                   # 运行测试
-npm run compile:themes     # 编译 Less → CSS
-npm run build:themes       # 打包 CSS → theme.js
+npm test                    # run test suite
+npm run compile:themes      # compile Less → CSS
+npm run build:themes        # bundle CSS → theme.js
 ```
 
 ## License
