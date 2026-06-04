@@ -6,6 +6,7 @@ import {
   isAiConfigError,
   loadAiConfig,
   saveAiConfig,
+  testAiConnection,
 } from "../aiConfig";
 import { runInlineRewrite } from "../ai";
 
@@ -31,6 +32,56 @@ describe("AI config persistence", () => {
       model: "test-model",
     });
     expect(loadAiConfig().model).toBe("test-model");
+  });
+});
+
+describe("testAiConnection", () => {
+  beforeEach(() => {
+    (global as any).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: "ok" } }],
+      }),
+    });
+  });
+
+  it("checks the configured chat completions endpoint", async () => {
+    await expect(
+      testAiConnection({
+        apiKey: "sk-test",
+        baseURL: "https://example.com/v1",
+        model: "test-model",
+      })
+    ).resolves.toEqual({ ok: true });
+
+    expect((global as any).fetch).toHaveBeenCalledWith(
+      "https://example.com/v1/chat/completions",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          Authorization: "Bearer sk-test",
+        }),
+      })
+    );
+  });
+
+  it("turns provider errors into user-facing messages", async () => {
+    (global as any).fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: { message: "Invalid API key" } }),
+    });
+
+    await expect(
+      testAiConnection({
+        apiKey: "bad-key",
+        baseURL: "https://example.com/v1",
+        model: "test-model",
+      })
+    ).resolves.toEqual({
+      ok: false,
+      message: "API Key 不正确或已失效，请重新复制后粘贴。",
+    });
   });
 });
 

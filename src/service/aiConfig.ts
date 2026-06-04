@@ -52,6 +52,10 @@ export const providerPresets = [
   },
 ];
 
+function joinChatCompletionsUrl(baseURL: string) {
+  return `${baseURL.replace(/\/+$/, "")}/chat/completions`;
+}
+
 export function loadAiConfig(): AiConfig {
   try {
     const config = localStorage.getItem(AI_CONFIG_KEY);
@@ -63,6 +67,57 @@ export function loadAiConfig(): AiConfig {
 
 export function saveAiConfig(config: AiConfig) {
   localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(config));
+}
+
+function getConnectionErrorMessage(status: number, providerMessage?: string) {
+  if (status === 401 || status === 403) {
+    return "API Key 不正确或已失效，请重新复制后粘贴。";
+  }
+  if (status === 402 || status === 429) {
+    return "当前 Key 可能余额不足或请求额度已用完，请到服务商控制台检查。";
+  }
+  if (status >= 500) {
+    return "服务商接口暂时不可用，请稍后再试。";
+  }
+  return providerMessage || `连接失败：HTTP ${status}`;
+}
+
+export async function testAiConnection(config: AiConfig): Promise<{ ok: boolean; message?: string }> {
+  assertAiConfigReady(config);
+
+  try {
+    const response = await fetch(joinChatCompletionsUrl(config.baseURL.trim()), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.apiKey.trim()}`,
+      },
+      body: JSON.stringify({
+        model: config.model.trim(),
+        temperature: 0,
+        messages: [
+          {
+            role: "user",
+            content: "请回复 ok，用于测试 API Key 是否可用。",
+          },
+        ],
+      }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return {
+        ok: false,
+        message: getConnectionErrorMessage(response.status, data?.error?.message),
+      };
+    }
+    return { ok: true };
+  } catch {
+    return {
+      ok: false,
+      message: "网络连接失败，请检查代理、Base URL 或本机网络。",
+    };
+  }
 }
 
 export function isAiConfigReady(config: AiConfig) {

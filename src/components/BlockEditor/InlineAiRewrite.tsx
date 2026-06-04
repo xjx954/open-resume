@@ -105,7 +105,7 @@ const InlineAiRewrite: React.FC = () => {
       if (isAiConfigError(e)) {
         Modal.confirm({
           title: "请先配置 AI 服务",
-          content: "前往设置中的 AI 服务配置，填写 API Key、Base URL 和 Model 后即可使用 AI 润色。",
+          content: "按向导选择服务商并粘贴 API Key，测试连接成功后即可使用 AI 润色。",
           okText: "打开设置",
           cancelText: "稍后再说",
           onOk: openSettings,
