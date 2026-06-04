@@ -1,6 +1,6 @@
 .resume-ai {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(360px, 1.15fr);
   gap: 24px;
 
   &__section {
@@ -20,6 +20,16 @@
     }
   }
 
+  &__task-group {
+    display: flex;
+    width: 100%;
+
+    .ant-radio-button-wrapper {
+      flex: 1;
+      text-align: center;
+    }
+  }
+
   &__result-title {
     margin-bottom: 8px;
     color: #1f2933;
@@ -29,4 +39,137 @@
   &__actions {
     margin-top: 12px;
   }
+
+  &__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 260px;
+    color: #8b95a1;
+    background: #f8fafc;
+    border: 1px dashed #dbe2ea;
+    border-radius: 8px;
+  }
+}
+
+.resume-analysis-report {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 540px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.analysis-card {
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+
+  h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  p {
+    margin: 0;
+    color: #5f6b7a;
+    line-height: 1.6;
+  }
+}
+
+.analysis-card--coverage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+
+  strong {
+    font-size: 28px;
+    color: #111827;
+  }
+}
+
+.analysis-keywords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.analysis-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.analysis-list {
+  margin: 0;
+  padding-left: 18px;
+
+  li {
+    margin: 4px 0;
+    color: #374151;
+    line-height: 1.6;
+  }
+}
+
+.analysis-empty {
+  color: #9ca3af;
+}
+
+.analysis-radar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.analysis-radar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #374151;
+
+  strong {
+    color: #111827;
+    letter-spacing: 1px;
+  }
+}
+
+.analysis-suggestion,
+.analysis-bullet {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid #eef2f7;
+
+  &:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+}
+
+.analysis-bullet__keyword {
+  display: inline-flex;
+  margin-bottom: 6px;
+  padding: 2px 8px;
+  color: #92400e;
+  background: #fffbeb;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.analysis-disclaimer {
+  margin: 0;
+  padding: 10px 12px;
+  color: #6b7280;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
 }

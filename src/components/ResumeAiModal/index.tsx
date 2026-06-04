@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { Button, Input, message, Modal, Select, Space } from "antd";
-import { AiTaskOption, AiTaskType } from "@src/types/ai";
-import { runResumeAiTask } from "@src/service/ai";
+import { Button, Input, message, Modal, Radio, Space } from "antd";
+import { AiTaskOption, AiTaskType, ResumeAnalysisResult } from "@src/types/ai";
+import { runJobMatchAnalysis, runResumeAiTask } from "@src/service/ai";
 import { isAiConfigError, loadAiConfig } from "@src/service/aiConfig";
+import ResumeAnalysisReportView from "./ResumeAnalysisReport";
 import "./index.less";
 
 const { TextArea } = Input;
@@ -14,19 +15,9 @@ const taskOptions: AiTaskOption[] = [
     description: "优化表达、语气和结构，不主动编造经历。",
   },
   {
-    type: "match_jd",
-    title: "匹配 JD",
-    description: "根据岗位描述突出匹配点和关键词。",
-  },
-  {
-    type: "quantify",
-    title: "经历量化",
-    description: "把职责描述改成更结果导向的表达。",
-  },
-  {
-    type: "ats_keywords",
-    title: "ATS 建议",
-    description: "输出关键词、缺失项和可插入 bullet。",
+    type: "job_match",
+    title: "岗位匹配分析",
+    description: "分析关键词覆盖、优势、待提升项和可复制的补充内容。",
   },
 ];
 
@@ -50,6 +41,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
   const [taskType, setTaskType] = useState<AiTaskType>("polish");
   const [jobDescription, setJobDescription] = useState("");
   const [result, setResult] = useState("");
+  const [analysisResult, setAnalysisResult] = useState<ResumeAnalysisResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const currentTask = useMemo(
@@ -58,15 +50,27 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
   );
 
   const runTask = async () => {
+    if (taskType === "job_match" && !jobDescription.trim()) {
+      message.warning("请先粘贴岗位描述。");
+      return;
+    }
+
     setLoading(true);
     try {
-      const content = await runResumeAiTask(
-        taskType,
-        markdown,
-        jobDescription,
-        loadAiConfig()
-      );
-      setResult(content);
+      if (taskType === "job_match") {
+        const report = await runJobMatchAnalysis(markdown, jobDescription, loadAiConfig());
+        setAnalysisResult(report);
+        setResult("");
+      } else {
+        const content = await runResumeAiTask(
+          taskType,
+          markdown,
+          jobDescription,
+          loadAiConfig()
+        );
+        setResult(content);
+        setAnalysisResult(null);
+      }
       message.success("AI 结果已生成");
     } catch (e: any) {
       const errorMessage = e?.message || "AI 请求失败，请检查配置后重试。";
@@ -91,6 +95,8 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
     message.success("已复制 AI 结果");
   };
 
+  const isAnalysisMode = taskType === "job_match";
+
   return (
     <Modal
       title="AI 助手"
@@ -103,21 +109,25 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
       <div className="resume-ai">
         <div className="resume-ai__section">
           <label>任务类型</label>
-          <Select
+          <Radio.Group
             value={taskType}
-            onChange={setTaskType}
-            style={{ width: "100%" }}
+            onChange={(event) => {
+              setTaskType(event.target.value as AiTaskType);
+              setResult("");
+              setAnalysisResult(null);
+            }}
+            className="resume-ai__task-group"
           >
             {taskOptions.map((item) => (
-              <Select.Option value={item.type} key={item.type}>
+              <Radio.Button value={item.type} key={item.type}>
                 {item.title}
-              </Select.Option>
+              </Radio.Button>
             ))}
-          </Select>
+          </Radio.Group>
           <p>{currentTask.description}</p>
         </div>
         <div className="resume-ai__section">
-          <label>岗位 JD（匹配 JD / ATS 建议时建议填写）</label>
+          <label>{isAnalysisMode ? "岗位描述（JD）" : "岗位 JD（可选）"}</label>
           <TextArea
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
@@ -126,37 +136,51 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
           />
         </div>
         <Button type="primary" loading={loading} onClick={runTask}>
-          生成优化结果
+          {isAnalysisMode ? "开始分析" : "生成优化结果"}
         </Button>
         <div className="resume-ai__result">
-          <div className="resume-ai__result-title">AI 结果</div>
-          <TextArea
-            value={result}
-            onChange={(e) => setResult(e.target.value)}
-            rows={12}
-            placeholder="生成结果会显示在这里。确认后再复制、插入或替换，不会自动覆盖当前简历。"
-          />
-          <Space className="resume-ai__actions">
-            <Button disabled={!result} onClick={copyResult}>
-              复制结果
-            </Button>
-            {blockMode ? (
-              <Button disabled={!result} onClick={() => onApply(result, "insert")}>
-                追加为新章节
-              </Button>
+          <div className="resume-ai__result-title">
+            {isAnalysisMode ? "岗位匹配分析" : "AI 结果"}
+          </div>
+          {isAnalysisMode ? (
+            analysisResult?.kind === "report" ? (
+              <ResumeAnalysisReportView report={analysisResult.report} />
+            ) : analysisResult?.kind === "fallback" ? (
+              <TextArea value={analysisResult.rawText} rows={12} readOnly />
             ) : (
-              <Button disabled={!result} onClick={() => onApply(result, "insert")}>
-                插入当前位置
-              </Button>
-            )}
-            <Button
-              danger
-              disabled={!result}
-              onClick={() => onApply(result, "replace")}
-            >
-              替换全文
-            </Button>
-          </Space>
+              <div className="resume-ai__placeholder">粘贴岗位描述后开始分析。</div>
+            )
+          ) : (
+            <>
+              <TextArea
+                value={result}
+                onChange={(e) => setResult(e.target.value)}
+                rows={12}
+                placeholder="生成结果会显示在这里。确认后再复制、插入或替换，不会自动覆盖当前简历。"
+              />
+              <Space className="resume-ai__actions">
+                <Button disabled={!result} onClick={copyResult}>
+                  复制结果
+                </Button>
+                {blockMode ? (
+                  <Button disabled={!result} onClick={() => onApply(result, "insert")}>
+                    追加为新章节
+                  </Button>
+                ) : (
+                  <Button disabled={!result} onClick={() => onApply(result, "insert")}>
+                    插入当前位置
+                  </Button>
+                )}
+                <Button
+                  danger
+                  disabled={!result}
+                  onClick={() => onApply(result, "replace")}
+                >
+                  替换全文
+                </Button>
+              </Space>
+            </>
+          )}
         </div>
       </div>
     </Modal>

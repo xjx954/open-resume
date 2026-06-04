@@ -1,15 +1,16 @@
 import { AiConfig, AiTaskType } from "@src/types/ai";
 import { assertAiConfigReady } from "./aiConfig";
+import {
+  calculateKeywordCoverage,
+  extractJobKeywords,
+  parseJobMatchAnalysis,
+} from "./jobMatchAnalysis";
 
 const taskPrompts: Record<AiTaskType, string> = {
   polish:
     "你是一名专业中文简历顾问。请在不编造经历的前提下，润色这份 Markdown 简历，让表达更清晰、更有结果导向。保留 Markdown 结构，直接输出优化后的 Markdown。",
-  match_jd:
-    "你是一名招聘匹配顾问。请根据岗位 JD 优化这份 Markdown 简历，突出匹配项、补强关键词，并指出不应夸大的内容。直接输出可替换的 Markdown。",
-  quantify:
-    "你是一名简历成果量化顾问。请找出经历中可以量化的表述，改写为更具体的 STAR/结果导向表达。不要虚构数字；缺少数字时用【建议补充】标记。",
-  ats_keywords:
-    "你是一名 ATS 关键词优化顾问。请基于简历和岗位 JD 输出关键词建议、缺失能力点、可插入的简历 bullet。使用清晰的 Markdown 分组输出。",
+  job_match:
+    "你是一名资深技术招聘顾问。请根据用户简历、岗位 JD 和本地关键词覆盖结果，输出岗位匹配分析 JSON。不要输出 ATS 分、JD 分、总分或虚假数字；不编造经历，不虚构项目。建议必须可执行，generatedBullets.sourceKeyword 必须对应缺失关键词或相关 JD 关键词。",
 };
 
 const inlineRewritePrompt =
@@ -134,4 +135,67 @@ export async function runInlineRewrite(
     throw new Error("AI 未返回有效内容。");
   }
   return content;
+}
+
+export async function runJobMatchAnalysis(
+  markdown: string,
+  jobDescription: string,
+  config: AiConfig
+) {
+  if (!jobDescription.trim()) {
+    throw new Error("请先粘贴岗位描述。");
+  }
+
+  const apiKey = config.apiKey.trim();
+  const baseURL = config.baseURL.trim();
+  const model = config.model.trim();
+  assertAiConfigReady(config);
+
+  const jdKeywords = extractJobKeywords(jobDescription);
+  const localCoverage = calculateKeywordCoverage(jdKeywords, markdown);
+
+  const response = await fetch(joinUrl(baseURL), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.35,
+      messages: [
+        {
+          role: "system",
+          content: taskPrompts.job_match,
+        },
+        {
+          role: "user",
+          content: [
+            "当前简历 Markdown:",
+            markdown || "（当前简历为空）",
+            "",
+            "岗位 JD:",
+            jobDescription,
+            "",
+            "本地关键词覆盖结果:",
+            JSON.stringify(localCoverage, null, 2),
+            "",
+            "请只输出 JSON，字段为 advantages、improvementAreas、suggestions、generatedBullets、radarScores。",
+          ].join("\n"),
+        },
+      ],
+    }),
+  });
+
+  const data: ChatCompletionResponse = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error?.message || `AI 请求失败：HTTP ${response.status}`);
+  }
+
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error("AI 未返回有效内容。");
+  }
+
+  return parseJobMatchAnalysis(content, localCoverage);
 }
