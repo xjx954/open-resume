@@ -11,6 +11,19 @@ interface MarkdownToken {
   nesting: number;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function clearInlineToken(token: any) {
+  token.content = '';
+  token.children = [];
+}
+
 export const markdownParserResume = new MarkdownIt({
     html: true,
     breaks: true,
@@ -24,7 +37,6 @@ markdownParserResume
             return obj;
         }, {})
     })
-    .use(MdHContainer)
     .use(MdContainer, 'header')
     .use(MdContainer, 'left', {
         render: function (tokens: MarkdownToken[], idx: number) {
@@ -45,7 +57,24 @@ markdownParserResume
         }
 
     })
+    .use(MdContainer, 'sidebar', {
+        render: function (tokens: MarkdownToken[], idx: number) {
+            if (tokens[idx].nesting === 1) {
+                return '<div class="resume-layout resume-layout--two-column"><div class="resume-sidebar">';
+            }
+            return '</div>';
+        }
+    })
+    .use(MdContainer, 'main', {
+        render: function (tokens: MarkdownToken[], idx: number) {
+            if (tokens[idx].nesting === 1) {
+                return '<main class="resume-main">';
+            }
+            return '</main></div>';
+        }
+    })
     .use(MdContainer, 'title')
+    .use(MdHContainer)
     .use(MdNContainer)
 
 // ── Custom heading renderers: unified entry-header layout ──
@@ -61,6 +90,28 @@ markdownParserResume.renderer.rules.heading_open = function (tokens, idx, option
         const inlineToken = tokens[idx + 1];
         if (inlineToken && inlineToken.type === 'inline') {
             const text = inlineToken.content;
+            const parts = text.split('|').map((part: string) => part.trim()).filter(Boolean);
+            if (parts.length === 3 || parts.length === 2) {
+                clearInlineToken(inlineToken);
+                token.attrJoin('class', 'entry-title');
+                if (parts.length === 3) {
+                    return [
+                        '<h3 class="entry-title resume-entry-title">',
+                        '<span class="resume-entry-row resume-entry-row-3">',
+                        `<span class="resume-entry-main">${escapeHtml(parts[0])}</span>`,
+                        `<span class="resume-entry-role">${escapeHtml(parts[1])}</span>`,
+                        `<span class="resume-entry-date">${escapeHtml(parts[2])}</span>`,
+                        '</span>',
+                    ].join('');
+                }
+                return [
+                    '<h3 class="entry-title resume-entry-title">',
+                    '<span class="resume-entry-row resume-entry-row-2">',
+                    `<span class="resume-entry-main">${escapeHtml(parts[0])}</span>`,
+                    `<span class="resume-entry-date">${escapeHtml(parts[1])}</span>`,
+                    '</span>',
+                ].join('');
+            }
             const dateMatch = text.match(/[（(]([^）)]+)[）)]\s*$/);
             if (dateMatch) {
                 (env as any)._h3date = dateMatch[1];
@@ -98,7 +149,7 @@ markdownParserResume.renderer.rules.heading_close = function (tokens, idx, optio
         const date = (env as any)._h3date;
         delete (env as any)._h3date;
         if (date) {
-            return `<span class="entry-date">${date}</span></div></h3>`;
+            return `</h3><span class="entry-date resume-entry-date">${escapeHtml(date)}</span></div>`;
         }
         return '</h3>';
     }

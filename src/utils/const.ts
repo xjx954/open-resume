@@ -1,7 +1,7 @@
 export const themes = [
   {
     id: "default",
-    defaultColor: "#39393a",
+    defaultColor: "#111827",
     name: "极简经典",
     src: "/images/theme-default.svg",
     isColor: true,
@@ -9,57 +9,33 @@ export const themes = [
   },
   {
     id: "blue",
-    defaultColor: "#5974D4",
+    defaultColor: "#1F4E79",
     name: "蓝色专业",
     src: "/images/theme-blue.svg",
     isColor: true,
     defaultUrl: "",
   },
   {
-    id: "orange",
-    defaultColor: "#555555",
-    name: "双栏信息型",
-    src: "/images/theme-orange.svg",
+    id: "formal-cn",
+    defaultColor: "#111827",
+    name: "中文正式",
+    src: "/images/theme-default.svg",
     isColor: true,
     defaultUrl: "",
   },
   {
-    id: "pupple",
-    defaultColor: "#4a4a6a",
-    name: "灰紫信息型",
-    src: "/images/theme-pupple.svg",
-    isColor: true,
-    defaultUrl: "",
-  },
-  {
-    id: "mono",
-    defaultColor: "#222222",
-    name: "黑白专业",
-    src: "/images/theme-mono.svg",
-    isColor: true,
-    defaultUrl: "",
-  },
-  {
-    id: "green",
-    defaultColor: "#2d8a7a",
-    name: "学生/应届生",
-    src: "/images/theme-green.svg",
+    id: "two-column",
+    defaultColor: "#1F766E",
+    name: "双栏专业",
+    src: "/images/theme-two-column.svg",
     isColor: true,
     defaultUrl: "",
   },
   {
     id: "academic-blue",
-    defaultColor: "#2e557a",
+    defaultColor: "#1F4E79",
     name: "科研学术",
     src: "/images/theme-academic-blue.svg",
-    isColor: true,
-    defaultUrl: "",
-  },
-  {
-    id: "formal-cn",
-    defaultColor: "#1a1a2e",
-    name: "中文正式",
-    src: "/images/theme-default.svg",
     isColor: true,
     defaultUrl: "",
   },
@@ -177,7 +153,7 @@ export const TUTORIALS_GUIDE = `
 
 ## 3. 如何更换主题和主题色？
 
-点击顶部工具栏「选择模板」，可以切换 7 套视觉主题。部分主题标记了「可换色」，点击左下角颜色按钮可以自定义主题色。
+点击顶部工具栏「选择模板」，可以切换 5 套精品视觉主题。部分主题标记了「可换色」，点击左下角颜色按钮可以自定义主题色。
 
 
 ## 4. 遇到导出失败怎么办？

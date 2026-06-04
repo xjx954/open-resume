@@ -43,4 +43,45 @@ describe("TemplatePreview", () => {
     expect(iframe).toBeInTheDocument();
     expect(iframe.getAttribute("srcDoc")).toContain("/themes/blue.css");
   });
+  it("keeps two-column preview main content inside resume-main after sanitizing", () => {
+    const twoColumnMarkdown = `# Name
+
+::: sidebar
+
+## Contact
+
+Shanghai
+
+## Education
+
+### School | Degree | 2020-2024
+
+- item
+
+:::
+
+::: main
+
+## Work
+
+### Company | Role | 2024-Present
+
+- item
+
+:::`;
+    const srcDoc = buildTemplatePreviewSrcDoc({
+      markdown: twoColumnMarkdown,
+      theme: "two-column",
+      themeColor: "#1F766E",
+    });
+    const mainStart = srcDoc.indexOf('<main class="resume-main">');
+    const workStart = srcDoc.indexOf("Work");
+    const layoutEnd = srcDoc.indexOf("</main></div>");
+
+    expect(srcDoc).toContain("/themes/two-column.css");
+    expect(mainStart).toBeGreaterThan(-1);
+    expect(workStart).toBeGreaterThan(mainStart);
+    expect(layoutEnd).toBeGreaterThan(workStart);
+    expect(srcDoc).not.toContain('<main class="resume-main"></main>');
+  });
 });

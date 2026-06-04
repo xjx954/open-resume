@@ -3,14 +3,19 @@ import MarkdownIt from 'markdown-it'
 export default function MdHContainer(md: MarkdownIt) {
     const heading_map: string[] = [];
 
-    md.block.ruler.after(
-        "fence",
-        "myplugin",
-        function (state, line, maxLine) {
+    const headingContainerRule = function (state: any, line: number, maxLine: number) {
             let rg = /^(#+)\s(.*)/;
             let start = state.bMarks[line] + state.tShift[line];
             let end = state.eMarks[line];
             let text = state.src.substring(start, end);
+            let containerBoundary = /^:::\s*[\w-]*\s*$/.test(text.trim());
+            if (containerBoundary && heading_map.length) {
+                const length = heading_map.length;
+                for (let i = 0; i < length; i++) {
+                    state.push("container_div_heading__close", "div", -1);
+                    heading_map.pop();
+                }
+            }
             let match = text.match(rg);
             if (match && match.length) {
                 const heading_level = match[1];
@@ -30,8 +35,13 @@ export default function MdHContainer(md: MarkdownIt) {
                 }
             }
             return false;
-        }
-    );
+        };
+
+    try {
+        md.block.ruler.before("container_sidebar", "myplugin", headingContainerRule);
+    } catch (_error) {
+        md.block.ruler.before("heading", "myplugin", headingContainerRule);
+    }
     md.core.ruler.after("inline", "footnote_tail", (state) => {
         const length = heading_map.length;
         for (let i = 0; i < length; i++) {

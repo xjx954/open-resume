@@ -1,165 +1,56 @@
 @import "./common/global.less";
 
-// ── Academic Blue theme: 蓝线校招（带照片位） ──
-
 .rs-view {
-  min-height: 1040px;
-  padding: 28px 42px 32px;
   background: #fff;
-  color: #111;
-  border: 12px solid #eaf4ff;
-  box-shadow: inset 0 0 0 1px #d8e5f2;
+  color: #111827;
 
   .h1_block {
-    position: relative;
-    margin: 0 0 10px;
-    padding: 18px 0 16px;
-    background: #fff;
+    padding-top: 50px;
+    padding-bottom: 20px;
   }
 
-  // Contact block pushed down below photo
-  .h1_block > .lr-container + .h2_block {
-    margin-top: 110px;
+  h1 {
+    color: #111827;
+    font-size: 30px;
+    font-weight: 790;
   }
 
-  // Photo slot: first image after h1 or inside h1+p acts as photo
   .h1_block > h1 + p {
-    margin: 0;
-    height: 0;
-    line-height: 0;
+    color: #1F4E79;
+    font-size: 13.5px;
   }
 
-  .h1_block > h1 + p img,
-  .h1_block > img {
-    position: absolute;
-    top: 14px;
-    left: 22px;
-    width: 92px;
-    max-width: 92px;
-    height: 124px;
-    object-fit: cover;
-    border: 1px solid #dce4ef;
-  }
-
-  .h1_block > h1 {
-    font-size: 31px;
-    font-weight: 900;
-    margin: 44px 370px 0 150px;
-    color: #111;
-    line-height: 1.2;
-    letter-spacing: 0;
-  }
-
-  // Contact info positioned top-right
-  .h1_block > .lr-container {
-    position: absolute;
-    top: 28px;
-    right: 24px;
-    width: 335px;
-    display: block;
-    padding: 0;
-
-    .left { display: none; }
-
-    .right { text-align: left; }
-
-    p {
-      margin: 0 0 7px;
-      color: #222;
-      font-size: 12.5px;
-      line-height: 1.42;
-    }
-
-    a { color: #222; }
-  }
-
-  .h2_block {
-    padding: 8px 0 2px;
-    margin: 0;
-    background: #fff;
-  }
-
-  .h3_block {
-    padding: 0 0 3px;
+  .lr-container {
+    border-bottom: 1px solid #d9e4ef;
   }
 
   .resume-section-title,
   h2 {
-    color: #2e557a;
-    line-height: 1.35;
-    border-bottom: 3px solid #2e557a;
-    margin-left: -20px;
-    margin-right: -20px;
-    padding: 0 0 4px;
+    color: #1F4E79;
+    border-bottom: 1px solid #9bb8cf;
+    font-size: 15.5px;
   }
 
   .entry-title,
   h3 {
-    color: #111;
-    line-height: 1.55;
+    font-size: 13.8px;
   }
 
-  h4,
-  h5 {
-    font-size: 13px;
-    font-weight: 700;
-    color: #111;
+  .resume-entry-role {
+    color: #374151;
   }
 
-  p {
-    color: #222;
-    font-size: 13px;
-    line-height: 1.68;
-    margin-bottom: 4px;
-  }
-
-  .h3_block > p:first-of-type {
-    font-size: 13px;
-    font-weight: 600;
-    color: #444;
-  }
-
-  ul,
-  ol {
-    margin-top: 0;
-    margin-bottom: 5px;
-    padding: 0;
-  }
-
-  ul li,
-  ol li {
-    margin-top: 3px;
-    color: #222;
-    font-size: 13px;
-    line-height: 1.72;
-    list-style-position: inside;
-  }
-
-  code {
-    padding: 1px 5px;
-    color: #1d3f5f;
-    background: #edf5ff;
-    border-radius: 2px;
-    font-size: 12px;
+  .resume-entry-date,
+  .entry-date {
+    color: #1F4E79;
   }
 
   a {
-    color: #222;
+    color: #1F4E79;
+
     &:hover,
-    &:active,
-    &:focus { color: #2e557a; }
-  }
-
-  .icon { fill: #2e557a; }
-
-  .entry-date {
-    font-size: 13px;
-    color: #555;
-  }
-
-  // academic-blue uses its own horizontal gutter
-  .lr-container {
-    padding-left: 0;
-    padding-right: 0;
+    &:active {
+      color: #143854;
+    }
   }
 }

@@ -6,7 +6,7 @@ const puppeteer = require('puppeteer');
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 
-const VALID_THEMES = ['default', 'blue', 'orange', 'pupple', 'mono', 'green', 'academic-blue'];
+const VALID_THEMES = ['default', 'blue', 'formal-cn', 'two-column', 'academic-blue'];
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{3,8}$/;
 
 const app = express();

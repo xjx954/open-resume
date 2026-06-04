@@ -166,7 +166,7 @@ const Square = () => {
         <div className="square-section__header square-section__header--toolbar">
           <div>
             <h2>全部模板</h2>
-            <p>控制在 8 个以内，按内容结构适配不同场景。</p>
+            <p>只保留 5 个精品模板，按内容结构适配不同投递场景。</p>
           </div>
           <div className="square-search">
             <SearchOutlined />

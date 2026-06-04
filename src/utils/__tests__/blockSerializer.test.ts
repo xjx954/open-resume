@@ -392,6 +392,36 @@ describe('round-trip: markdown → blocks → markdown', () => {
     const roundTripped = blocksToMarkdown(blocks);
     expect(roundTripped).toBe(md);
   });
+
+  it('preserves sidebar/main containers as raw markdown for theme-specific layouts', () => {
+    const md = [
+      '# 张三',
+      '',
+      '::: sidebar',
+      '',
+      '## 技能',
+      '',
+      '技能分类：Python / React',
+      '',
+      ':::',
+      '',
+      '::: main',
+      '',
+      '## 工作经历',
+      '',
+      '### 公司 | 职位 | 2024.01-至今',
+      '',
+      '- 负责核心业务',
+      '',
+      ':::',
+    ].join('\n');
+
+    const blocks = markdownToBlocks(md);
+    const roundTripped = blocksToMarkdown(blocks);
+    expect(roundTripped).toContain('::: sidebar');
+    expect(roundTripped).toContain('::: main');
+    expect(roundTripped).toContain('### 公司 | 职位 | 2024.01-至今');
+  });
 });
 
 describe('empty and edge cases', () => {
