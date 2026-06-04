@@ -19,6 +19,7 @@ export interface Suggestion {
 
 export interface GeneratedBullet {
   targetSection: string;
+  targetEntryHint?: string;
   sourceKeyword: string;
   content: string;
   insertable?: boolean;

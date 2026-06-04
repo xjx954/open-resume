@@ -1,10 +1,17 @@
 import React from "react";
 import { Button, message, Tag } from "antd";
-import { CopyOutlined } from "@ant-design/icons";
+import { CheckOutlined, CopyOutlined, PlusOutlined } from "@ant-design/icons";
 import { GeneratedBullet, ResumeAnalysisReport, Suggestion } from "@src/types/ai";
+import { getGeneratedBulletKey } from "@src/utils/aiApply";
 
 interface Props {
   report: ResumeAnalysisReport;
+  onApplyBullet?: (bullet: GeneratedBullet) => void;
+  bulletStates?: Record<string, {
+    applied?: boolean;
+    duplicate?: boolean;
+    notice?: string;
+  }>;
 }
 
 const radarLabels: Array<[keyof ResumeAnalysisReport["radarScores"], string]> = [
@@ -57,24 +64,50 @@ const SuggestionList: React.FC<{ suggestions: Suggestion[] }> = ({ suggestions }
   </section>
 );
 
-const GeneratedBullets: React.FC<{ bullets: GeneratedBullet[] }> = ({ bullets }) => (
+const GeneratedBullets: React.FC<{
+  bullets: GeneratedBullet[];
+  onApplyBullet?: (bullet: GeneratedBullet) => void;
+  bulletStates?: Props["bulletStates"];
+}> = ({ bullets, onApplyBullet, bulletStates = {} }) => (
   <section className="analysis-card">
     <h3>AI 生成补充内容</h3>
-    {bullets.length ? bullets.map((item, index) => (
-      <article className="analysis-bullet" key={`${item.sourceKeyword}-${index}`}>
-        <div>
-          <div className="analysis-bullet__keyword">来源关键词：{item.sourceKeyword}</div>
-          <p>{item.content}</p>
-        </div>
-        <Button size="small" icon={<CopyOutlined />} onClick={() => copyText(item.content)}>
-          复制
-        </Button>
-      </article>
-    )) : <p className="analysis-empty">暂无可直接补充内容。</p>}
+    {bullets.length ? bullets.map((item, index) => {
+      const key = getGeneratedBulletKey(item);
+      const state = bulletStates[key] || {};
+      const disabled = !!(state.applied || state.duplicate);
+      const buttonText = state.duplicate
+        ? "这条内容已在简历中"
+        : state.applied
+          ? "已应用"
+          : "应用到简历";
+      return (
+        <article className="analysis-bullet" key={`${item.sourceKeyword}-${index}`}>
+          <div>
+            <div className="analysis-bullet__keyword">来源关键词：{item.sourceKeyword}</div>
+            <p>{item.content}</p>
+            {state.notice && <div className="analysis-bullet__notice">{state.notice}</div>}
+          </div>
+          {onApplyBullet ? (
+            <Button
+              size="small"
+              icon={disabled ? <CheckOutlined /> : <PlusOutlined />}
+              disabled={disabled}
+              onClick={() => onApplyBullet(item)}
+            >
+              {buttonText}
+            </Button>
+          ) : (
+            <Button size="small" icon={<CopyOutlined />} onClick={() => copyText(item.content)}>
+              复制
+            </Button>
+          )}
+        </article>
+      );
+    }) : <p className="analysis-empty">暂无可直接补充内容。</p>}
   </section>
 );
 
-const ResumeAnalysisReportView: React.FC<Props> = ({ report }) => {
+const ResumeAnalysisReportView: React.FC<Props> = ({ report, onApplyBullet, bulletStates }) => {
   return (
     <div className="resume-analysis-report">
       <section className="analysis-card analysis-card--coverage">
@@ -119,7 +152,11 @@ const ResumeAnalysisReportView: React.FC<Props> = ({ report }) => {
       <TextList title="优势分析" items={report.advantages} empty="暂无明显优势结论。" />
       <TextList title="待提升项" items={report.improvementAreas} empty="暂无明显待提升项。" />
       <SuggestionList suggestions={report.suggestions} />
-      <GeneratedBullets bullets={report.generatedBullets} />
+      <GeneratedBullets
+        bullets={report.generatedBullets}
+        onApplyBullet={onApplyBullet}
+        bulletStates={bulletStates}
+      />
 
       <p className="analysis-disclaimer">
         本分析由 AI 根据当前简历和岗位描述生成，用于辅助优化简历，不代表招聘方实际筛选规则。

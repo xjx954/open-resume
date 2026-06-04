@@ -48,6 +48,7 @@ describe("parseJobMatchAnalysis", () => {
         generatedBullets: [
           {
             targetSection: "projects",
+            targetEntryHint: "部署平台",
             sourceKeyword: "Docker",
             content: "使用 Docker 完成服务容器化部署。",
             insertable: false,
@@ -73,8 +74,35 @@ describe("parseJobMatchAnalysis", () => {
     expect(report.report.improvementAreas).toEqual(["缺少 Docker 描述"]);
     expect(report.report.generatedBullets[0]).toEqual({
       targetSection: "projects",
+      targetEntryHint: "部署平台",
       sourceKeyword: "Docker",
       content: "使用 Docker 完成服务容器化部署。",
+      insertable: false,
+    });
+  });
+
+  it("keeps generated bullets compatible when targetEntryHint is missing", () => {
+    const report = parseJobMatchAnalysis(
+      JSON.stringify({
+        generatedBullets: [
+          {
+            targetSection: "projects",
+            sourceKeyword: "RAG",
+            content: "补充 RAG 检索增强生成项目经验。",
+          },
+        ],
+        radarScores: {},
+      }),
+      localCoverage
+    );
+
+    expect(report.kind).toBe("report");
+    if (report.kind !== "report") return;
+    expect(report.report.generatedBullets[0]).toEqual({
+      targetSection: "projects",
+      sourceKeyword: "RAG",
+      content: "补充 RAG 检索增强生成项目经验。",
+      targetEntryHint: undefined,
       insertable: false,
     });
   });
@@ -158,6 +186,7 @@ describe("runJobMatchAnalysis", () => {
     const content = body.messages.map((message: { content: string }) => message.content).join("\n");
     expect(content).toContain("不要输出 ATS 分");
     expect(content).toContain("不编造经历");
+    expect(content).toContain("targetEntryHint");
     expect(content).toContain("Python FastAPI Linux");
     expect(content).toContain("Docker");
     expect(content).toContain("RAG");

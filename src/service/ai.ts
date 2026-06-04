@@ -10,7 +10,7 @@ const taskPrompts: Record<AiTaskType, string> = {
   polish:
     "你是一名专业中文简历顾问。请在不编造经历的前提下，润色这份 Markdown 简历，让表达更清晰、更有结果导向。保留 Markdown 结构，直接输出优化后的 Markdown。",
   job_match:
-    "你是一名资深技术招聘顾问。请根据用户简历、岗位 JD 和本地关键词覆盖结果，输出岗位匹配分析 JSON。不要输出 ATS 分、JD 分、总分或虚假数字；不编造经历，不虚构项目。建议必须可执行，generatedBullets.sourceKeyword 必须对应缺失关键词或相关 JD 关键词。",
+    "你是一名资深技术招聘顾问。请根据用户简历、岗位 JD 和本地关键词覆盖结果，输出岗位匹配分析 JSON。不要输出 ATS 分、JD 分、总分或虚假数字；不编造经历，不虚构项目。建议必须可执行，generatedBullets.sourceKeyword 必须对应缺失关键词或相关 JD 关键词。generatedBullets.targetEntryHint 可选，尽量填写适合插入的公司名、项目名或经历关键词，匹配不到时前端会降级处理。",
 };
 
 const inlineRewritePrompt =
@@ -180,7 +180,7 @@ export async function runJobMatchAnalysis(
             "本地关键词覆盖结果:",
             JSON.stringify(localCoverage, null, 2),
             "",
-            "请只输出 JSON，字段为 advantages、improvementAreas、suggestions、generatedBullets、radarScores。",
+            "请只输出 JSON，字段为 advantages、improvementAreas、suggestions、generatedBullets、radarScores。generatedBullets 每项字段为 targetSection、targetEntryHint、sourceKeyword、content、insertable。",
           ].join("\n"),
         },
       ],

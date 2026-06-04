@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { LOCAL_STORE, resolveThemeId, themes } from "@src/utils/const";
 import "./Home.less";
 
 const capabilityItems = [
@@ -9,7 +10,22 @@ const capabilityItems = [
   "Export to PDF",
 ];
 
+function getResumeTitle(markdown: string | null) {
+  const match = (markdown || "").match(/^#\s+(.+)$/m);
+  return match?.[1]?.trim() || "我的简历";
+}
+
+function getThemeName(themeId: string | null) {
+  const resolved = resolveThemeId(themeId);
+  return themes.find((theme) => theme.id === resolved)?.name || themes[0].name;
+}
+
 const Home: React.FC = () => {
+  const localResume = localStorage.getItem(LOCAL_STORE.MD_RESUME);
+  const hasLocalResume = !!localResume?.trim();
+  const resumeTitle = getResumeTitle(localResume);
+  const themeName = getThemeName(localStorage.getItem(LOCAL_STORE.MD_THEME));
+
   return (
     <main className="home-page">
       <section className="home-hero">
@@ -21,9 +37,15 @@ const Home: React.FC = () => {
           <p>
             专注内容，实时预览，选择模板后直接导出。把简历写作收束成一个清晰、稳定、可投递的工作流。
           </p>
+          {hasLocalResume && (
+            <div className="home-returning-summary">
+              <strong>{resumeTitle}</strong>
+              <span>当前模板：{themeName}</span>
+            </div>
+          )}
           <div className="home-hero__actions">
             <Link className="home-btn home-btn--primary" to="/editor">
-              立即开始
+              {hasLocalResume ? "继续编辑简历" : "立即开始"}
             </Link>
             <Link className="home-btn home-btn--secondary" to="/square">
               查看模板
@@ -37,8 +59,8 @@ const Home: React.FC = () => {
           <article className="home-resume-card">
             <header className="home-resume-card__header">
               <div>
-                <strong>林一帆</strong>
-                <span>Senior Frontend Engineer</span>
+                <strong>{hasLocalResume ? resumeTitle : "林一帆"}</strong>
+                <span>{hasLocalResume ? `当前模板：${themeName}` : "Senior Frontend Engineer"}</span>
               </div>
               <ul>
                 <li>lin@example.com</li>

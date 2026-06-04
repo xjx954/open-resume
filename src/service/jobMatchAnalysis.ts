@@ -112,6 +112,9 @@ export function parseJobMatchAnalysis(
       generatedBullets: Array.isArray(parsed?.generatedBullets)
         ? parsed.generatedBullets.map((item: any) => ({
             targetSection: String(item?.targetSection || "projects").trim() || "projects",
+            targetEntryHint: item?.targetEntryHint
+              ? String(item.targetEntryHint).trim() || undefined
+              : undefined,
             sourceKeyword: String(item?.sourceKeyword || "").trim(),
             content: String(item?.content || "").trim(),
             insertable: Boolean(item?.insertable),

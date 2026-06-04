@@ -1,12 +1,21 @@
 import React, { useMemo, useState } from "react";
 import { Button, Input, message, Modal, Radio, Space } from "antd";
-import { AiTaskOption, AiTaskType, ResumeAnalysisResult } from "@src/types/ai";
+import { AiTaskOption, AiTaskType, GeneratedBullet, ResumeAnalysisResult } from "@src/types/ai";
 import { runJobMatchAnalysis, runResumeAiTask } from "@src/service/ai";
 import { isAiConfigError, loadAiConfig } from "@src/service/aiConfig";
+import { applyGeneratedBulletToBlocks, getGeneratedBulletKey } from "@src/utils/aiApply";
+import { buildParagraphDiff, ParagraphDiffRow } from "@src/utils/markdownDiff";
+import { useStores } from "@src/store";
 import ResumeAnalysisReportView from "./ResumeAnalysisReport";
 import "./index.less";
 
 const { TextArea } = Input;
+
+type BulletState = {
+  applied?: boolean;
+  duplicate?: boolean;
+  notice?: string;
+};
 
 const taskOptions: AiTaskOption[] = [
   {
@@ -38,10 +47,12 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
   onApply,
   onOpenSettings,
 }) => {
+  const { templateStore } = useStores();
   const [taskType, setTaskType] = useState<AiTaskType>("polish");
   const [jobDescription, setJobDescription] = useState("");
   const [result, setResult] = useState("");
   const [analysisResult, setAnalysisResult] = useState<ResumeAnalysisResult | null>(null);
+  const [bulletStates, setBulletStates] = useState<Record<string, BulletState>>({});
   const [loading, setLoading] = useState(false);
 
   const currentTask = useMemo(
@@ -61,6 +72,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
         const report = await runJobMatchAnalysis(markdown, jobDescription, loadAiConfig());
         setAnalysisResult(report);
         setResult("");
+        setBulletStates({});
       } else {
         const content = await runResumeAiTask(
           taskType,
@@ -115,6 +127,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
               setTaskType(event.target.value as AiTaskType);
               setResult("");
               setAnalysisResult(null);
+              setBulletStates({});
             }}
             className="resume-ai__task-group"
           >
@@ -144,7 +157,28 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
           </div>
           {isAnalysisMode ? (
             analysisResult?.kind === "report" ? (
-              <ResumeAnalysisReportView report={analysisResult.report} />
+              <ResumeAnalysisReportView
+                report={analysisResult.report}
+                onApplyBullet={(bullet: GeneratedBullet) => {
+                  const applyResult = applyGeneratedBulletToBlocks(templateStore.blocks, bullet);
+                  const key = getGeneratedBulletKey(bullet);
+                  if (applyResult.applied) {
+                    templateStore.setBlocks(applyResult.blocks);
+                    message.success(`已添加至「${applyResult.targetTitle}」`);
+                  } else if (applyResult.duplicate) {
+                    message.info("这条内容已在简历中");
+                  }
+                  setBulletStates((prev) => ({
+                    ...prev,
+                    [key]: {
+                      applied: applyResult.applied,
+                      duplicate: applyResult.duplicate,
+                      notice: applyResult.notice,
+                    },
+                  }));
+                }}
+                bulletStates={bulletStates}
+              />
             ) : analysisResult?.kind === "fallback" ? (
               <TextArea value={analysisResult.rawText} rows={12} readOnly />
             ) : (
@@ -158,6 +192,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
                 rows={12}
                 placeholder="生成结果会显示在这里。确认后再复制、插入或替换，不会自动覆盖当前简历。"
               />
+              <ParagraphDiffPreview rows={buildParagraphDiff(markdown, result)} hasResult={!!result} />
               <Space className="resume-ai__actions">
                 <Button disabled={!result} onClick={copyResult}>
                   复制结果
@@ -186,5 +221,28 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
     </Modal>
   );
 };
+
+const ParagraphDiffPreview: React.FC<{ rows: ParagraphDiffRow[]; hasResult: boolean }> = ({
+  rows,
+  hasResult,
+}) => (
+  <section className="resume-ai-diff">
+    <div className="resume-ai-diff__title">段落级改动预览</div>
+    <div className="resume-ai-diff__header">
+      <span>原文</span>
+      <span>AI 结果</span>
+    </div>
+    <div className="resume-ai-diff__rows">
+      {hasResult ? rows.map((row, index) => (
+        <div className={`resume-ai-diff__row resume-ai-diff__row--${row.type}`} key={`${row.type}-${index}`}>
+          <p>{row.before || ""}</p>
+          <p>{row.after || ""}</p>
+        </div>
+      )) : (
+        <div className="resume-ai-diff__empty">生成结果后会在这里标出新增、删除和修改的段落。</div>
+      )}
+    </div>
+  </section>
+);
 
 export default ResumeAiModal;

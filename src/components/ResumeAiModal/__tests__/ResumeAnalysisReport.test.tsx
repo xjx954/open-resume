@@ -1,5 +1,5 @@
 import React from "react";
-import { render } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import ResumeAnalysisReportView from "../ResumeAnalysisReport";
 import { ResumeAnalysisReport } from "@src/types/ai";
 
@@ -13,6 +13,7 @@ const report: ResumeAnalysisReport = {
   generatedBullets: [
     {
       targetSection: "projects",
+      targetEntryHint: "部署平台",
       sourceKeyword: "Docker",
       content: "使用 Docker 完成服务容器化部署，提高环境部署效率。",
       insertable: false,
@@ -48,5 +49,41 @@ describe("ResumeAnalysisReportView", () => {
     expect(text).not.toContain("总分");
     expect(text).not.toContain("ATS评分");
     expect(text).not.toContain("ATS检测");
+  });
+
+  it("lets users apply generated bullets and shows fallback notice", () => {
+    const onApplyBullet = jest.fn();
+    const { getByText } = render(
+      <ResumeAnalysisReportView
+        report={report}
+        onApplyBullet={onApplyBullet}
+        bulletStates={{
+          "projects|Docker|使用 Docker 完成服务容器化部署，提高环境部署效率。": {
+            notice: "未找到匹配模块，已添加至「补充亮点」",
+          },
+        }}
+      />
+    );
+
+    fireEvent.click(getByText("应用到简历"));
+
+    expect(onApplyBullet).toHaveBeenCalledWith(report.generatedBullets[0]);
+    expect(getByText("未找到匹配模块，已添加至「补充亮点」")).toBeInTheDocument();
+  });
+
+  it("disables applied duplicate generated bullets", () => {
+    const { getByText } = render(
+      <ResumeAnalysisReportView
+        report={report}
+        onApplyBullet={() => undefined}
+        bulletStates={{
+          "projects|Docker|使用 Docker 完成服务容器化部署，提高环境部署效率。": {
+            duplicate: true,
+          },
+        }}
+      />
+    );
+
+    expect(getByText("这条内容已在简历中").closest("button")).toBeDisabled();
   });
 });

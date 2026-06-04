@@ -29,6 +29,7 @@ import {
   IdcardOutlined,
   UnorderedListOutlined,
   CodeOutlined,
+  RobotOutlined,
 } from '@ant-design/icons';
 import {
   ResumeBlock,
@@ -484,6 +485,11 @@ const BlockEditor: React.FC = observer(() => {
 
   return (
     <div className="rs-block-editor">
+      <div className="block-ai-helper">
+        <RobotOutlined />
+        <span>AI 润色选中文本</span>
+        <em>先选中任意输入框里的文字，按钮会在文字附近出现。</em>
+      </div>
       <div className="block-editor-actions">
         <button type="button" className="block-editor-actions__btn" onClick={expandAll}>
           全部展开

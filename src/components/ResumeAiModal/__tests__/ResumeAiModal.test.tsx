@@ -20,4 +20,20 @@ describe("ResumeAiModal", () => {
     expect(container.textContent).not.toContain("ATS评分");
     expect(container.textContent).not.toContain("ATS检测");
   });
+
+  it("shows paragraph diff preview in polish mode", () => {
+    const { getAllByText, getByText } = render(
+      <ResumeAiModal
+        visible
+        markdown={"# 张三\n\n负责业务开发"}
+        onCancel={() => undefined}
+        onApply={() => undefined}
+        onOpenSettings={() => undefined}
+      />
+    );
+
+    expect(getByText("段落级改动预览")).toBeInTheDocument();
+    expect(getByText("原文")).toBeInTheDocument();
+    expect(getAllByText("AI 结果").length).toBeGreaterThanOrEqual(1);
+  });
 });
