@@ -34,6 +34,7 @@ import Shortcuts from "@src/components/Shortcuts";
 import History from "@src/components/History";
 import ResumeAiModal from "@src/components/ResumeAiModal";
 import AiSettingsModal from "@src/components/AiSettingsModal";
+import ResumeImportModal from "@src/components/ResumeImportModal";
 import { HeaderData } from "@src/types/resume";
 
 const is_update = +(localStorage.getItem(LOCAL_STORE.MD_UPDATE_LOG) || 0) >= UPDATE_LOG_VERSION ? false : true;
@@ -64,6 +65,7 @@ const HeaderBar = observer(() => {
   const [isAiSettingsVisible, setIsAiSettingsVisible] = useState(false);
   const [shortcutsVisible, setShortcutsVisible] = useState(false);
   const [historyVisible, setHistoryVisible] = useState(false);
+  const [importVisible, setImportVisible] = useState(false);
 
   const formRef = useRef<FormInstance>(null);
   const templateListRef = useRef<HTMLDivElement>(null);
@@ -86,26 +88,13 @@ const HeaderBar = observer(() => {
     }
   };
 
-  const uploadMdFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const resultFile = e.target.files?.[0];
-    if (!resultFile) return;
-    const reader = new FileReader();
-    reader.readAsText(resultFile);
-    reader.onload = (event) => {
-      const nextContent = event.target?.result;
-      if (typeof nextContent === 'string') {
-        templateStore.setMdContent(nextContent);
-        templateStore.editorRef?.setValue(nextContent);
-        setPreview(false);
-        renderViewStyle(color, nextContent);
-        message.success("导入 Markdown 成功");
-      }
-      e.target.value = '';
-    };
-    reader.onerror = () => {
-      message.error("导入 Markdown 失败，请确认文件内容可读取");
-      e.target.value = '';
-    };
+  const applyImportedMarkdown = useCallback((nextContent: string) => {
+    templateStore.setMdContent(nextContent);
+    templateStore.editorRef?.setValue(nextContent);
+    setPreview(false);
+    renderViewStyle(color, nextContent);
+    setImportVisible(false);
+    message.success("导入旧简历成功");
   }, [color, setPreview, templateStore]);
 
   const exportMdFile = useCallback(() => {
@@ -239,17 +228,8 @@ const HeaderBar = observer(() => {
   const overflowMenu = (
     <Menu className="header-overflow-menu">
       <Menu.ItemGroup title="文件">
-        <Menu.Item key="import-md">
-          <label htmlFor="uploadMdFile" style={{ display: 'block', margin: 0, cursor: 'pointer' }}>
-            <FileTextOutlined style={{ marginRight: 8 }} />导入 Markdown
-            <input
-              type="file"
-              id="uploadMdFile"
-              accept=".md"
-              className="uploadMd"
-              onChange={uploadMdFile}
-            />
-          </label>
+        <Menu.Item key="import-md" onClick={() => setImportVisible(true)}>
+          <FileTextOutlined style={{ marginRight: 8 }} />导入旧简历
         </Menu.Item>
         <Menu.Item key="export-md" onClick={exportMdFile}>
           <FileTextOutlined style={{ marginRight: 8 }} />导出 Markdown
@@ -468,6 +448,11 @@ const HeaderBar = observer(() => {
       <AiSettingsModal
         visible={isAiSettingsVisible}
         onCancel={() => setIsAiSettingsVisible(false)}
+      />
+      <ResumeImportModal
+        visible={importVisible}
+        onCancel={() => setImportVisible(false)}
+        onConfirm={applyImportedMarkdown}
       />
       <Shortcuts visible={shortcutsVisible} onClose={() => setShortcutsVisible(false)} />
       <History visible={historyVisible} onClose={() => setHistoryVisible(false)} />
