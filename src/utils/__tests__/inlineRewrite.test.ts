@@ -1,4 +1,4 @@
-import { getInlineRewriteContext, replaceSelectedText } from "../inlineRewrite";
+import { getInlineRewriteContext, insertAfterSelectedText, replaceSelectedText } from "../inlineRewrite";
 
 describe("replaceSelectedText", () => {
   it("replaces only the selected range", () => {
@@ -21,6 +21,19 @@ describe("replaceSelectedText", () => {
     );
 
     expect(result).toBe("项目成果：首屏加载速度提升 30%");
+  });
+});
+
+describe("insertAfterSelectedText", () => {
+  it("inserts the AI result after the selected range on a new line", () => {
+    const result = insertAfterSelectedText(
+      "负责系统开发和维护",
+      0,
+      10,
+      "负责核心系统开发、上线维护与稳定性优化"
+    );
+
+    expect(result).toBe("负责系统开发和维护\n负责核心系统开发、上线维护与稳定性优化");
   });
 });
 
