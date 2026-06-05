@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Empty, Input, Modal, Upload, message } from 'antd';
 import { ClearOutlined, DeleteOutlined, InboxOutlined, PlusOutlined } from '@ant-design/icons';
+import { extractResumeImportText } from '@src/service/import/fileTextExtractor';
 import { importMarkdownResume } from '@src/service/import/markdownImporter';
 import { normalizeResumeToMarkdown } from '@src/service/import/resumeNormalizer';
 import {
@@ -346,25 +347,30 @@ const ResumeImportModal: React.FC<Props> = ({ visible, onCancel, onConfirm }) =>
       <div className="resume-import-layout">
         <div className="resume-import-source">
           <Dragger
-            accept=".md,.markdown,text/markdown,text/plain"
+            accept=".md,.markdown,.txt,.docx,.pdf,text/markdown,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             showUploadList={false}
-            beforeUpload={(file) => {
-              const reader = new FileReader();
-              reader.onload = event => {
-                const text = event.target?.result;
-                if (typeof text === 'string') {
+            beforeUpload={async (file) => {
+              const hide = message.loading('正在读取文件内容...', 0);
+              try {
+                const text = await extractResumeImportText(file);
+                if (!text.trim()) {
+                  message.warning('没有读取到可导入的文本内容');
+                } else {
                   setSourceText(text);
                   message.success('文件已读取，请确认识别结果');
                 }
-              };
-              reader.onerror = () => message.error('文件读取失败，请确认内容可读取');
-              reader.readAsText(file);
+              } catch (error) {
+                const detail = error instanceof Error ? error.message : '文件读取失败';
+                message.error(detail);
+              } finally {
+                hide();
+              }
               return false;
             }}
           >
             <p className="ant-upload-drag-icon"><InboxOutlined /></p>
-            <p className="ant-upload-text">上传 .md 文件</p>
-            <p className="ant-upload-hint">支持 Markdown 和纯文本，不处理 DOCX/PDF</p>
+            <p className="ant-upload-text">上传 .md / .docx / .pdf 文件</p>
+            <p className="ant-upload-hint">DOCX/PDF 仅提取文本，不保留原排版，不做 OCR</p>
           </Dragger>
 
           <TextArea
