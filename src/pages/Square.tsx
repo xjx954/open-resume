@@ -125,7 +125,7 @@ const Square = () => {
         </div>
         <div className="featured-grid">
           {featuredList.map((item) => (
-            <article className="featured-card" key={item.id}>
+            <article className={`featured-card featured-card--${item.theme}`} key={item.id}>
               <div className="featured-card__preview">
                 <TemplatePreview
                   title={`${item.title}预览`}
@@ -195,7 +195,7 @@ const Square = () => {
         {filteredList.length ? (
           <div className="rs-square-container">
             {filteredList.map((item) => (
-              <article className="rs-square" key={item.id}>
+              <article className={`rs-square rs-square--${item.theme}`} key={item.id}>
                 {item.recommended && <span className="rs-square__badge">推荐</span>}
                 <div className="rs-square__thumb">
                   <TemplatePreview

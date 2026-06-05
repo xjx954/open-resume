@@ -5,7 +5,7 @@
   color: #111827;
 
   .h1_block {
-    padding: 44px 42px 18px;
+    padding: 60px 46px 16px;
   }
 
   h1 {
@@ -24,15 +24,15 @@
   }
 
   .resume-layout--two-column {
-    grid-template-columns: 174px minmax(0, 1fr);
+    grid-template-columns: 218px minmax(0, 1fr);
     column-gap: 22px;
-    padding-left: 42px;
-    padding-right: 42px;
+    padding-left: 46px;
+    padding-right: 46px;
     padding-top: 6px;
   }
 
   .resume-sidebar {
-    padding: 18px 14px 0 0;
+    padding: 18px 16px 0 0;
     border-right: 1px solid #d7e3e1;
     background: #fff;
 
@@ -45,14 +45,34 @@
     ul {
       padding-left: 15px;
     }
+
+    .resume-entry-row-3 {
+      grid-template-columns: minmax(0, 1fr) 88px;
+      row-gap: 1px;
+      column-gap: 8px;
+    }
+
+    .resume-entry-row-3 .resume-entry-main {
+      grid-column: 1 / -1;
+    }
+
+    .resume-entry-main,
+    .resume-entry-role {
+      white-space: normal;
+    }
+
+    .resume-entry-date {
+      text-align: right;
+      white-space: nowrap;
+    }
   }
 
   .resume-main {
     padding-top: 18px;
 
     .resume-entry-row-2 {
-      grid-template-columns: minmax(0, 1fr) 108px;
-      column-gap: 10px;
+      grid-template-columns: minmax(0, 1fr) 120px;
+      column-gap: 12px;
     }
 
     .resume-entry-main {
@@ -85,6 +105,10 @@
 
   .resume-entry-date,
   .entry-date {
+    color: #1F766E;
+  }
+
+  strong {
     color: #1F766E;
   }
 
