@@ -1,11 +1,29 @@
 import { importMarkdownResume } from '../markdownImporter';
-import { normalizeMarkdown, splitSections } from '../resumeParser';
+import { isIgnorableLine, normalizeMarkdown, splitSections } from '../resumeParser';
 
 describe('normalizeMarkdown', () => {
   it('normalizes full-width spaces, CRLF, repeated spaces, and blank lines', () => {
     expect(normalizeMarkdown('### 项目　名称\r\n角色：  负责人\r\n\r\n\r\n-  内容')).toBe(
       '### 项目 名称\n角色： 负责人\n\n- 内容'
     );
+  });
+});
+
+describe('isIgnorableLine', () => {
+  it('ignores layout syntax, image tags, empty bullets, and blank lines', () => {
+    expect(isIgnorableLine('　　')).toBe(true);
+    expect(isIgnorableLine('-')).toBe(true);
+    expect(isIgnorableLine('-   ')).toBe(true);
+    expect(isIgnorableLine('*')).toBe(true);
+    expect(isIgnorableLine('•')).toBe(true);
+    expect(isIgnorableLine('-\u200B')).toBe(true);
+    expect(isIgnorableLine('::: left')).toBe(true);
+    expect(isIgnorableLine('<img class="resume-photo" src="avatar.png" alt="photo">')).toBe(true);
+    expect(isIgnorableLine('- <img class="resume-photo" src="avatar.png" alt="photo">')).toBe(true);
+    expect(isIgnorableLine('- ![avatar](avatar.png)')).toBe(true);
+    expect(isIgnorableLine('left')).toBe(true);
+    expect(isIgnorableLine('right')).toBe(true);
+    expect(isIgnorableLine('可接受远程协作')).toBe(false);
   });
 });
 
@@ -154,5 +172,86 @@ zhangsan@example.com
     expect(result.markdown).toContain('## 未归类内容');
     expect(result.markdown).toContain('- ## 其他说明\n可接受远程协作');
     expect(result.preview.unparsedBlocks).toEqual(result.schema.unparsedBlocks);
+  });
+
+  it('does not create unclassified content from old layout noise', () => {
+    const result = importMarkdownResume(`# 钱八
+
+<img class="resume-photo" src="avatar.png" alt="photo">
+
+## 旧版布局
+::: left
+-
+*
+•
+left
+right
+<img src="avatar.png">
+::: right
+
+## 教育背景
+### 浙江大学 | 计算机科学 本科 | 2018.09-2022.06
+- GPA 3.8/4.0
+`);
+
+    expect(result.schema.unparsedBlocks).toEqual([]);
+    expect(result.schema.sections.unclassified.items).toEqual([]);
+    expect(result.markdown).not.toContain('## 未归类内容');
+    expect(result.markdown).not.toContain('- -');
+    expect(result.schema.sections.education.entries[0]).toMatchObject({
+      name: '浙江大学',
+      role: '计算机科学 本科',
+      date: '2018.09-2022.06',
+      bullets: ['GPA 3.8/4.0'],
+    });
+  });
+
+  it('drops previously generated empty unclassified sections', () => {
+    const result = importMarkdownResume(`# 相静轩
+
+AI 应用开发工程师
+
+## 未归类内容
+-
+- <img src="avatar.png">
+- ![avatar](avatar.png)
+left
+right
+:::
+
+## 教育背景 / Education
+### 重庆大学 985 / 211 / 双一流，电子信息类 硕士 2022.09-2025.06
+- 自动化学院，研究方向包含视觉 SLAM
+`);
+
+    expect(result.schema.unparsedBlocks).toEqual([]);
+    expect(result.schema.sections.unclassified.items).toEqual([]);
+    expect(result.markdown).not.toContain('## 未归类内容');
+    expect(result.markdown).not.toContain('\n- \n');
+    expect(result.schema.sections.education.entries[0]).toMatchObject({
+      name: '重庆大学 985 / 211 / 双一流',
+      role: '电子信息类 硕士',
+      date: '2022.09-2025.06',
+      bullets: ['自动化学院，研究方向包含视觉 SLAM'],
+    });
+  });
+
+  it('filters ignorable lines before storing meaningful unparsed blocks', () => {
+    const result = importMarkdownResume(`# 周九
+
+## 其他说明
+::: left
+-
+left
+可接受远程协作
+<img src="avatar.png">
+:::
+`);
+
+    expect(result.schema.unparsedBlocks).toEqual(['## 其他说明\n可接受远程协作']);
+    expect(result.markdown).toContain('## 未归类内容');
+    expect(result.markdown).toContain('可接受远程协作');
+    expect(result.markdown).not.toContain('<img');
+    expect(result.markdown).not.toContain('::: left');
   });
 });

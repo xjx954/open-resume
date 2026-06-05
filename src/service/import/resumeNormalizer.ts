@@ -43,6 +43,8 @@ export function normalizeResumeToMarkdown(resume: ResumeSchema): string {
   }
 
   SECTION_ORDER.forEach(key => {
+    if (key === 'unclassified' && resume.unparsedBlocks.length === 0) return;
+
     const section = resume.sections[key];
     if (!section) return;
     if (section.entries.length === 0 && section.items.length === 0) return;

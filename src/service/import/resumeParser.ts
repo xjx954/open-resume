@@ -20,6 +20,7 @@ const SECTION_ALIASES: Array<{ key: ResumeImportSectionKey; re: RegExp }> = [
   { key: 'projects', re: /^(项目经历|项目经验|项目|project|projects)$/i },
   { key: 'skills', re: /^(专业技能|技能|技术栈|skills|technical skills)$/i },
   { key: 'research', re: /^(科研成果与荣誉|科研与荣誉|科研成果|荣誉奖项|奖项|论文|awards|honors|research)$/i },
+  { key: 'unclassified', re: /^(未归类内容|未归类|未分类|其他|其它|unclassified|other|others)$/i },
 ];
 
 const DATE_RE = /((?:\d{4}(?:[./-]\d{1,2})?|至今|现在|present|current|now)\s*(?:(?:-|–|—|~|至|到)\s*(?:\d{4}(?:[./-]\d{1,2})?|至今|现在|present|current|now))?)/i;
@@ -37,6 +38,7 @@ interface SectionBlock {
 
 export function normalizeMarkdown(input: string): string {
   return input
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
     .replace(/\r\n?/g, '\n')
     .replace(/\u3000/g, ' ')
     .replace(/\u00a0/g, ' ')
@@ -45,6 +47,28 @@ export function normalizeMarkdown(input: string): string {
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+export function isIgnorableLine(line: string): boolean {
+  const raw = line
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/\u3000/g, ' ')
+    .replace(/\u00a0/g, ' ')
+    .trim();
+  if (!raw) return true;
+  if (/^[-*+•]\s*$/.test(raw)) return true;
+  if (/^:::/i.test(raw)) return true;
+  if (/^<img\b[^>]*>\s*$/i.test(raw)) return true;
+  if (/^[-*+•]\s*<img\b[^>]*>\s*$/i.test(raw)) return true;
+  if (/^!\[[^\]]*]\([^)]+\)\s*$/.test(raw)) return true;
+  if (/^[-*+•]\s*!\[[^\]]*]\([^)]+\)\s*$/.test(raw)) return true;
+
+  const withoutHeading = raw.replace(/^\s{0,3}#{1,6}\s+/, '').trim();
+  if (/^(left|right|sidebar|main)$/i.test(withoutHeading)) return true;
+
+  const cleaned = cleanLine(raw).replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+  if (!cleaned) return true;
+  return /^(left|right|sidebar|main)$/i.test(cleaned);
 }
 
 function emptySection(key: ResumeImportSectionKey): ResumeSchemaSection {
@@ -79,10 +103,6 @@ function cleanLine(line: string): string {
     .trim();
 }
 
-function isContainerMarker(line: string): boolean {
-  return /^:::\s*(left|right|sidebar|main)?\s*$/i.test(line.trim());
-}
-
 function getHeading(line: string): { level: number; text: string } | null {
   const match = line.match(/^(#{1,6})\s+(.+)$/);
   if (!match) return null;
@@ -91,7 +111,11 @@ function getHeading(line: string): { level: number; text: string } | null {
 
 function detectSection(text: string): ResumeImportSectionKey | null {
   const normalized = text.replace(/\s+/g, ' ').trim();
-  const found = SECTION_ALIASES.find(item => item.re.test(normalized));
+  const candidates = [
+    normalized,
+    ...normalized.split(/\s*(?:\/|\||｜|:|：|-|–|—)\s*/),
+  ].map(item => item.trim()).filter(Boolean);
+  const found = SECTION_ALIASES.find(item => candidates.some(candidate => item.re.test(candidate)));
   return found ? found.key : null;
 }
 
@@ -102,9 +126,9 @@ export function splitSections(markdown: string): { introLines: string[]; section
   let current: SectionBlock | null = null;
 
   lines.forEach(line => {
-    if (isContainerMarker(line)) return;
+    if (isIgnorableLine(line)) return;
     const heading = getHeading(line);
-    if (heading && heading.level === 2) {
+    if (heading && heading.level === 2 && heading.text.trim()) {
       current = {
         key: detectSection(heading.text),
         title: heading.text,
@@ -121,11 +145,16 @@ export function splitSections(markdown: string): { introLines: string[]; section
     }
   });
 
-  return { introLines, sections };
+  return {
+    introLines,
+    sections: sections.filter(section =>
+      section.title.trim() && section.lines.some(line => !isIgnorableLine(line))
+    ),
+  };
 }
 
 function parseIntro(lines: string[], schema: ResumeSchema) {
-  lines.filter(line => line.trim()).forEach(rawLine => {
+  lines.filter(line => !isIgnorableLine(line)).forEach(rawLine => {
     const heading = getHeading(rawLine);
     const text = heading ? heading.text : cleanLine(rawLine);
     if (!text) return;
@@ -198,7 +227,7 @@ function parseEntrySection(lines: string[], section: ResumeSchemaSection) {
   let current: ResumeSchemaEntry | null = null;
 
   lines.forEach(rawLine => {
-    if (!rawLine.trim() || isContainerMarker(rawLine)) return;
+    if (isIgnorableLine(rawLine)) return;
     const heading = getHeading(rawLine);
     const text = heading ? heading.text : cleanLine(rawLine);
     if (!text) return;
@@ -223,7 +252,7 @@ function parseProjectSection(lines: string[], section: ResumeSchemaSection) {
   let current: ResumeSchemaEntry | null = null;
 
   lines.forEach(rawLine => {
-    if (!rawLine.trim() || isContainerMarker(rawLine)) return;
+    if (isIgnorableLine(rawLine)) return;
     const heading = getHeading(rawLine);
     const text = heading ? heading.text : cleanLine(rawLine);
     if (!text) return;
@@ -264,7 +293,7 @@ function parseProjectSection(lines: string[], section: ResumeSchemaSection) {
 
 function parseItemSection(lines: string[], section: ResumeSchemaSection) {
   lines.forEach(rawLine => {
-    if (!rawLine.trim() || isContainerMarker(rawLine)) return;
+    if (isIgnorableLine(rawLine)) return;
     const heading = getHeading(rawLine);
     const text = heading ? heading.text : cleanLine(rawLine);
     if (text) section.items.push(text);
@@ -272,7 +301,11 @@ function parseItemSection(lines: string[], section: ResumeSchemaSection) {
 }
 
 function addUnparsedBlock(schema: ResumeSchema, block: string) {
-  const normalized = block.trim();
+  const normalized = block
+    .split('\n')
+    .filter(line => !isIgnorableLine(line))
+    .join('\n')
+    .trim();
   if (!normalized) return;
   schema.unparsedBlocks.push(normalized);
   schema.sections.unclassified.items.push(normalized);
