@@ -3,12 +3,12 @@
   font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif !important;
 }
 
-@page-gutter: 68px;
-@page-top: 76px;
+@page-gutter: 44px;
+@page-top: 48px;
 @text: #111827;
 @muted: #4b5563;
 @line: #d1d5db;
-@date-col: 138px;
+@date-col: 128px;
 
 .break-line {
   display: block;
@@ -29,41 +29,41 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    padding: @page-top @page-gutter 18px;
+    padding: @page-top @page-gutter 12px;
   }
 
   .h2_block {
     display: flex;
     flex-direction: column;
-    padding: 0 @page-gutter 17px;
+    padding: 0 @page-gutter 12px;
   }
 
   .h3_block {
-    padding: 0 0 9px;
+    padding: 0 0 6px;
   }
 
   .h2_block + .h2_block {
-    padding-top: 2px;
+    padding-top: 1px;
   }
 
   .h3_block + .h3_block {
-    padding-top: 3px;
+    padding-top: 2px;
   }
 
   h1 {
     margin: 0;
     padding: 0;
     color: @text;
-    font-size: 30px;
+    font-size: 46px;
     font-weight: 780;
-    line-height: 1.18;
+    line-height: 1.08;
     letter-spacing: 0;
   }
 
   .h1_block > h1 + p {
     margin: 6px 0 0;
     color: @muted;
-    font-size: 13.5px;
+    font-size: 17px;
     font-weight: 500;
     line-height: 1.5;
   }
@@ -72,7 +72,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 28px;
-    padding: 10px @page-gutter 10px;
+    padding: 7px @page-gutter 8px;
     color: @muted;
 
     .left,
@@ -86,20 +86,20 @@
 
     p {
       margin: 0 0 3px;
-      font-size: 12px;
-      line-height: 1.5;
+      font-size: 13.6px;
+      line-height: 1.36;
     }
   }
 
   .resume-section-title,
   h2 {
-    margin: 0 0 9px;
-    padding: 0 0 5px;
+    margin: 0 0 7px;
+    padding: 0 0 4px;
     border-bottom: 1px solid @line;
     color: @text;
-    font-size: 15px;
-    font-weight: 740;
-    line-height: 1.35;
+    font-size: 19px;
+    font-weight: 750;
+    line-height: 1.28;
     letter-spacing: 0;
     text-transform: none;
   }
@@ -109,7 +109,7 @@
     margin: 0;
     padding: 0;
     color: @text;
-    font-size: 13.5px;
+    font-size: 15px;
     font-weight: 720;
     line-height: 1.45;
     letter-spacing: 0;
@@ -132,7 +132,7 @@
     text-align: right;
     white-space: nowrap;
     color: @muted;
-    font-size: 12px;
+    font-size: 13.6px;
     font-weight: 620;
     line-height: 1.45;
   }
@@ -175,11 +175,11 @@
   }
 
   p {
-    margin: 0 0 4px;
+    margin: 0 0 3px;
     color: @muted;
-    font-size: 12.5px;
+    font-size: 14.2px;
     font-weight: 400;
-    line-height: 1.62;
+    line-height: 1.44;
   }
 
   strong {
@@ -189,23 +189,23 @@
 
   .h3_block > p:first-of-type {
     color: #374151;
-    font-size: 12.5px;
+    font-size: 14.2px;
     font-weight: 560;
   }
 
   ul,
   ol {
-    margin: 2px 0 4px;
+    margin: 0 0 2px;
     padding: 0 0 0 18px;
     overflow: visible;
   }
 
   ul li,
   ol li {
-    margin: 1px 0;
+    margin: 0;
     color: @muted;
-    font-size: 12.5px;
-    line-height: 1.62;
+    font-size: 14.2px;
+    line-height: 1.44;
   }
 
   ul li {
@@ -270,9 +270,9 @@
 
   .resume-layout--two-column {
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
-    column-gap: 26px;
-    padding: 0 @page-gutter 28px;
+    grid-template-columns: 232px minmax(0, 1fr);
+    column-gap: 18px;
+    padding: 0 @page-gutter 18px;
   }
 
   .resume-sidebar,
@@ -285,26 +285,26 @@
     border-right: 1px solid #e5e7eb;
 
     .h2_block {
-      padding: 0 0 16px;
+      padding: 0 0 11px;
     }
 
     .resume-section-title,
     h2 {
-      margin-bottom: 8px;
-      font-size: 13.5px;
+      margin-bottom: 6px;
+      font-size: 16.2px;
     }
 
     p,
     ul li,
     ol li {
-      font-size: 11.8px;
-      line-height: 1.54;
+      font-size: 13px;
+      line-height: 1.36;
     }
   }
 
   .resume-main {
     .h2_block {
-      padding: 0 0 18px;
+      padding: 0 0 12px;
     }
   }
 }

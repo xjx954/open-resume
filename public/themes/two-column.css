@@ -20,35 +20,35 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 76px 68px 18px;
+  padding: 48px 44px 12px;
 }
 .rs-view .h2_block {
   display: flex;
   flex-direction: column;
-  padding: 0 68px 17px;
+  padding: 0 44px 12px;
 }
 .rs-view .h3_block {
-  padding: 0 0 9px;
+  padding: 0 0 6px;
 }
 .rs-view .h2_block + .h2_block {
-  padding-top: 2px;
+  padding-top: 1px;
 }
 .rs-view .h3_block + .h3_block {
-  padding-top: 3px;
+  padding-top: 2px;
 }
 .rs-view h1 {
   margin: 0;
   padding: 0;
   color: #111827;
-  font-size: 30px;
+  font-size: 46px;
   font-weight: 780;
-  line-height: 1.18;
+  line-height: 1.08;
   letter-spacing: 0;
 }
 .rs-view .h1_block > h1 + p {
   margin: 6px 0 0;
   color: #4b5563;
-  font-size: 13.5px;
+  font-size: 17px;
   font-weight: 500;
   line-height: 1.5;
 }
@@ -56,7 +56,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 28px;
-  padding: 10px 68px 10px;
+  padding: 7px 44px 8px;
   color: #4b5563;
 }
 .rs-view .lr-container .left,
@@ -68,18 +68,18 @@
 }
 .rs-view .lr-container p {
   margin: 0 0 3px;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 13.6px;
+  line-height: 1.36;
 }
 .rs-view .resume-section-title,
 .rs-view h2 {
-  margin: 0 0 9px;
-  padding: 0 0 5px;
+  margin: 0 0 7px;
+  padding: 0 0 4px;
   border-bottom: 1px solid #d1d5db;
   color: #111827;
-  font-size: 15px;
-  font-weight: 740;
-  line-height: 1.35;
+  font-size: 19px;
+  font-weight: 750;
+  line-height: 1.28;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -88,14 +88,14 @@
   margin: 0;
   padding: 0;
   color: #111827;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 720;
   line-height: 1.45;
   letter-spacing: 0;
 }
 .rs-view .entry-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 138px;
+  grid-template-columns: minmax(0, 1fr) 128px;
   column-gap: 16px;
   align-items: baseline;
   margin: 0 0 2px;
@@ -108,7 +108,7 @@
   text-align: right;
   white-space: nowrap;
   color: #4b5563;
-  font-size: 12px;
+  font-size: 13.6px;
   font-weight: 620;
   line-height: 1.45;
 }
@@ -123,10 +123,10 @@
   align-items: baseline;
 }
 .rs-view .resume-entry-row-3 {
-  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr) 138px;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr) 128px;
 }
 .rs-view .resume-entry-row-2 {
-  grid-template-columns: minmax(0, 1fr) 138px;
+  grid-template-columns: minmax(0, 1fr) 128px;
 }
 .rs-view .resume-entry-main,
 .rs-view .resume-entry-role {
@@ -143,11 +143,11 @@
   font-weight: 620;
 }
 .rs-view p {
-  margin: 0 0 4px;
+  margin: 0 0 3px;
   color: #4b5563;
-  font-size: 12.5px;
+  font-size: 14.2px;
   font-weight: 400;
-  line-height: 1.62;
+  line-height: 1.44;
 }
 .rs-view strong {
   color: #111827;
@@ -155,21 +155,21 @@
 }
 .rs-view .h3_block > p:first-of-type {
   color: #374151;
-  font-size: 12.5px;
+  font-size: 14.2px;
   font-weight: 560;
 }
 .rs-view ul,
 .rs-view ol {
-  margin: 2px 0 4px;
+  margin: 0 0 2px;
   padding: 0 0 0 18px;
   overflow: visible;
 }
 .rs-view ul li,
 .rs-view ol li {
-  margin: 1px 0;
+  margin: 0;
   color: #4b5563;
-  font-size: 12.5px;
-  line-height: 1.62;
+  font-size: 14.2px;
+  line-height: 1.44;
 }
 .rs-view ul li {
   list-style: disc outside;
@@ -208,7 +208,7 @@
 .rs-view img.resume-photo {
   position: absolute;
   top: 22px;
-  right: 68px;
+  right: 44px;
   width: 78px;
   height: 104px;
   max-width: none;
@@ -224,9 +224,9 @@
 }
 .rs-view .resume-layout--two-column {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  column-gap: 26px;
-  padding: 0 68px 28px;
+  grid-template-columns: 232px minmax(0, 1fr);
+  column-gap: 18px;
+  padding: 0 44px 18px;
 }
 .rs-view .resume-sidebar,
 .rs-view .resume-main {
@@ -237,50 +237,48 @@
   border-right: 1px solid #e5e7eb;
 }
 .rs-view .resume-sidebar .h2_block {
-  padding: 0 0 16px;
+  padding: 0 0 11px;
 }
 .rs-view .resume-sidebar .resume-section-title,
 .rs-view .resume-sidebar h2 {
-  margin-bottom: 8px;
-  font-size: 13.5px;
+  margin-bottom: 6px;
+  font-size: 16.2px;
 }
 .rs-view .resume-sidebar p,
 .rs-view .resume-sidebar ul li,
 .rs-view .resume-sidebar ol li {
-  font-size: 11.8px;
-  line-height: 1.54;
+  font-size: 13px;
+  line-height: 1.36;
 }
 .rs-view .resume-main .h2_block {
-  padding: 0 0 18px;
+  padding: 0 0 12px;
 }
 .rs-view {
   background: #fff;
   color: #111827;
 }
 .rs-view .h1_block {
-  padding: 60px 46px 16px;
+  padding: 42px 34px 10px;
 }
 .rs-view h1 {
   color: #111827;
-  font-size: 29px;
   font-weight: 780;
 }
 .rs-view .h1_block > h1 + p {
   color: #1F766E;
-  font-size: 13.5px;
 }
 .rs-view > .lr-container {
   display: none;
 }
 .rs-view .resume-layout--two-column {
-  grid-template-columns: 218px minmax(0, 1fr);
-  column-gap: 22px;
-  padding-left: 46px;
-  padding-right: 46px;
-  padding-top: 6px;
+  grid-template-columns: 232px minmax(0, 1fr);
+  column-gap: 18px;
+  padding-left: 34px;
+  padding-right: 34px;
+  padding-top: 3px;
 }
 .rs-view .resume-sidebar {
-  padding: 18px 16px 0 0;
+  padding: 12px 14px 0 0;
   border-right: 1px solid #d7e3e1;
   background: #fff;
 }
@@ -293,7 +291,7 @@
   padding-left: 15px;
 }
 .rs-view .resume-sidebar .resume-entry-row-3 {
-  grid-template-columns: minmax(0, 1fr) 88px;
+  grid-template-columns: minmax(0, 1fr) 84px;
   row-gap: 1px;
   column-gap: 8px;
 }
@@ -309,10 +307,10 @@
   white-space: nowrap;
 }
 .rs-view .resume-main {
-  padding-top: 18px;
+  padding-top: 12px;
 }
 .rs-view .resume-main .resume-entry-row-2 {
-  grid-template-columns: minmax(0, 1fr) 120px;
+  grid-template-columns: minmax(0, 1fr) 116px;
   column-gap: 12px;
 }
 .rs-view .resume-main .resume-entry-main {
@@ -321,8 +319,8 @@
 }
 .rs-view .resume-main .entry-title,
 .rs-view .resume-main h3 {
-  font-size: 13px;
-  line-height: 1.42;
+  font-size: 14.6px;
+  line-height: 1.34;
 }
 .rs-view .resume-section-title,
 .rs-view h2 {
