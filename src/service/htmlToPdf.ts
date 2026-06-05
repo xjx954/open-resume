@@ -9,7 +9,6 @@ export interface PdfParams {
     isMark: boolean
     watermarkText?: string
     isOnePage: boolean
-    pages: string
 }
 
 /**

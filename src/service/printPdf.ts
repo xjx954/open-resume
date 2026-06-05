@@ -1,8 +1,15 @@
+import {
+  A4_WIDTH_PX,
+  RESUME_DENSITY_CSS,
+  RESUME_PAGE_CSS,
+} from './pdfExportHtml';
+
 export interface PrintPdfParams {
   htmlContent: string;
   themeColor: string;
   isMark: boolean;
   watermarkText?: string;
+  isOnePage?: boolean;
 }
 
 function getThemeCss() {
@@ -25,6 +32,7 @@ export function printPdfFallback({
   themeColor,
   isMark,
   watermarkText = 'Open Resume',
+  isOnePage = false,
 }: PrintPdfParams) {
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
@@ -43,7 +51,7 @@ export function printPdfFallback({
     throw new Error('Browser print is not available.');
   }
 
-  const themeCss = getThemeCss().replace(/var\(--bg\)/g, themeColor);
+  const themeCss = getThemeCss();
   const watermark = isMark ? buildWatermark(watermarkText) : '';
 
   doc.open();
@@ -56,8 +64,10 @@ export function printPdfFallback({
     :root { --bg: ${themeColor}; }
     @page { size: A4; margin: 0; }
     html, body { margin: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .rs-view-inner { width: 794px; margin: 0 auto; background: #fff; }
+    .rs-view-inner { width: ${A4_WIDTH_PX}px; margin: 0 auto; background: #fff; }
     ${themeCss}
+    ${RESUME_DENSITY_CSS}
+    ${RESUME_PAGE_CSS}
   </style>
 </head>
 <body>
@@ -71,9 +81,19 @@ export function printPdfFallback({
     setTimeout(() => iframe.remove(), 500);
   };
 
+  const applyOnePageLayout = () => {
+    if (!isOnePage) return;
+    const root = doc.querySelector('.rs-view-inner') as HTMLElement | null;
+    if (!root) return;
+    doc.body.style.width = `${A4_WIDTH_PX}px`;
+    root.style.width = `${A4_WIDTH_PX}px`;
+    root.style.margin = '0';
+  };
+
   win.focus();
   win.onafterprint = cleanup;
   setTimeout(() => {
+    applyOnePageLayout();
     win.print();
     setTimeout(cleanup, 3000);
   }, 100);

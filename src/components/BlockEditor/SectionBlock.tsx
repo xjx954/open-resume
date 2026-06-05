@@ -60,7 +60,7 @@ const ItemEditor: React.FC<ItemEditorProps> = ({ items, onChange }) => {
         <div className="block-item-row" key={i}>
           <Select
             value={item.type}
-            style={{ width: 70, flexShrink: 0 }}
+            className="block-item-row__type"
             size="small"
             onChange={(val: SectionItem['type']) => updateItem(i, { ...item, type: val })}
             options={[
@@ -77,9 +77,10 @@ const ItemEditor: React.FC<ItemEditorProps> = ({ items, onChange }) => {
               onChange={e => updateItem(i, { ...item, content: e.target.value })}
             />
           ) : (
-            <Input
+            <Input.TextArea
               value={item.content}
               placeholder="要点内容"
+              autoSize={{ minRows: 1, maxRows: 8 }}
               style={{ flex: 1 }}
               onChange={e => updateItem(i, { ...item, content: e.target.value })}
             />

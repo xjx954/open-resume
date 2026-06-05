@@ -3,6 +3,7 @@ import { INIT_COLOR, INIT_CONTENT, LOCAL_STORE, resolveThemeId } from '@utils/co
 import { ResumeEditorRef, setHtmlView } from '@src/utils/global';
 import { ResumeBlock } from '@src/types/resume';
 import { blocksToMarkdown, markdownToBlocks, sanitizeBlock } from '@src/utils/blockSerializer';
+import { A4_HEIGHT_PX, PdfLayoutMode, ResumeDensity } from '@src/service/pdfExportHtml';
 
 const storedTheme = localStorage.getItem(LOCAL_STORE.MD_THEME);
 const default_theme = resolveThemeId(storedTheme);
@@ -42,6 +43,10 @@ class TemplateStore {
   color = INIT_COLOR;
   html = '';
   isPreview = false;
+  pdfLayoutMode: PdfLayoutMode = 'normal';
+  pdfDensity: ResumeDensity = 'normal';
+  pdfContentHeight = A4_HEIGHT_PX;
+  pdfCanFitOnePage = true;
 
   // Block model (the source of truth for block editor)
   blocks: ResumeBlock[] = loadBlocks();
@@ -71,6 +76,24 @@ class TemplateStore {
 
   setPreview = (value: boolean) => {
     this.isPreview = value;
+  }
+
+  setPdfLayoutMode = (mode: PdfLayoutMode) => {
+    this.pdfLayoutMode = mode;
+  }
+
+  setPdfLayoutMetrics = (contentHeight: number, density: ResumeDensity, canFitOnePage = true) => {
+    const roundedHeight = Math.round(contentHeight);
+    if (
+      this.pdfContentHeight === roundedHeight &&
+      this.pdfDensity === density &&
+      this.pdfCanFitOnePage === canFitOnePage
+    ) {
+      return;
+    }
+    this.pdfContentHeight = roundedHeight;
+    this.pdfDensity = density;
+    this.pdfCanFitOnePage = canFitOnePage;
   }
 
   setTempTheme = (theme: string) => {

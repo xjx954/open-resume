@@ -38,6 +38,7 @@ const Main: React.FC = observer(() => {
 
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const viewWrapperRef = useRef<HTMLDivElement>(null);
+  const previewBeforeOnePageRef = useRef<boolean | null>(null);
 
   const handleZoomIn = useCallback(() => {
     setZoom(prev => Math.min(prev + ZOOM_STEP, 200));
@@ -69,6 +70,26 @@ const Main: React.FC = observer(() => {
     } else {
       message.success('编辑模式');
     }
+  }, [templateStore]);
+
+  const handleToggleSmartOnePage = useCallback(() => {
+    const nextMode = templateStore.pdfLayoutMode === 'smart-one-page' ? 'normal' : 'smart-one-page';
+    templateStore.setPdfLayoutMode(nextMode);
+    if (nextMode === 'smart-one-page') {
+      previewBeforeOnePageRef.current = templateStore.isPreview;
+    }
+    if (nextMode === 'smart-one-page' && !templateStore.isPreview) {
+      renderResumePreviewMode(true, templateStore.color, templateStore.mdContent);
+      templateStore.setPreview(true);
+    }
+    if (nextMode === 'normal' && previewBeforeOnePageRef.current === false) {
+      renderResumePreviewMode(false, templateStore.color, templateStore.mdContent);
+      templateStore.setPreview(false);
+    }
+    if (nextMode === 'normal') {
+      previewBeforeOnePageRef.current = null;
+    }
+    message.success(nextMode === 'smart-one-page' ? '智能一页' : '普通分页预览');
   }, [templateStore]);
 
   const handleModeChange = useCallback((mode: "block" | "md") => {
@@ -116,11 +137,15 @@ const Main: React.FC = observer(() => {
           <EditorToolbar
             zoom={zoom}
             isPreview={templateStore.isPreview}
+            isSmartOnePage={templateStore.pdfLayoutMode === 'smart-one-page'}
+            density={templateStore.pdfDensity}
+            canFitOnePage={templateStore.pdfCanFitOnePage}
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
             onFitWidth={handleFitWidth}
             onZoomPreset={handleZoomPreset}
             onTogglePreview={handleTogglePreview}
+            onToggleSmartOnePage={handleToggleSmartOnePage}
           />
           <div className="rs-view-wrapper" ref={viewWrapperRef}>
             <View zoom={zoom} />

@@ -1,5 +1,4 @@
 import React from 'react';
-import htmlParser from 'rs-md-html-parser';
 import { message, Switch, Tooltip } from "antd";
 import { useStores } from "@src/store";
 import { setHtmlView } from "@src/utils/global";
@@ -13,7 +12,6 @@ const Preview = observer(() => {
     const rsViewer = document.querySelector(".rs-view") as HTMLElement;
     if (!isPreview) {
       message.success('打开预览模式');
-      htmlParser(rsViewer);
     } else {
       message.success('关闭预览模式');
       // 重新宣传的逻辑

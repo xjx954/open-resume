@@ -19,12 +19,12 @@ import {
   RobotOutlined,
   CheckCircleFilled,
 } from "@ant-design/icons";
-import htmlParser from 'rs-md-html-parser';
 import "./index.less";
 import { getTheme } from "@utils/changeThemes";
 import { downloadDirect, markdownParserArticle, sanitizeHtml } from "@utils/helper";
 import { generatePdfBlob } from "@src/service/htmlToPdf";
 import { printPdfFallback } from "@src/service/printPdf";
+import { getCleanExportHtml, waitForResumeLayout } from "@src/service/pdfExportHtml";
 import { useStores } from "@src/store";
 import { updateTemplate, renderViewStyle, renderResumePreviewMode } from "@src/utils/global";
 import { LOCAL_STORE, UPDATE_CONTENT, UPDATE_LOG_VERSION } from '@src/utils/const';
@@ -41,7 +41,6 @@ const is_update = +(localStorage.getItem(LOCAL_STORE.MD_UPDATE_LOG) || 0) >= UPD
 
 interface ExportFormValues {
   name: string;
-  isOnePage: boolean;
   isMark: boolean;
   watermarkText?: string;
 }
@@ -146,33 +145,28 @@ const HeaderBar = observer(() => {
 
   const exportPdf = async ({
     name,
-    isOnePage,
     isMark,
     watermarkText,
   }: ExportFormValues) => {
-    const rsViewer = document.querySelector(".rs-view") as HTMLElement;
-    if (!isPreview) {
-      setPreview(true);
-      htmlParser(rsViewer);
-    }
-    const pages = rsViewer.dataset.pages || '1';
-    const rsLine = document.querySelectorAll('.rs-line-split');
-    rsLine.forEach(item => item.parentNode?.removeChild(item));
+    await waitForResumeLayout();
     const content = localStorage.getItem(LOCAL_STORE.MD_RESUME);
 
     if (content) {
-      const htmlContent = document.querySelector('.rs-view-inner')?.innerHTML.replace(/(\n|\r)/g, "");
+      const htmlContent = getCleanExportHtml(document.querySelector('.resume-pages'));
       let hide = message.loading("正在为你生成简历...", 0);
-      const themeColor = getComputedStyle(document.body).getPropertyValue("--bg");
+      const themeColor = getComputedStyle(document.body).getPropertyValue("--bg").trim() || color;
+      const isOnePage = templateStore.pdfLayoutMode === 'smart-one-page' && templateStore.pdfCanFitOnePage;
+      if (templateStore.pdfLayoutMode === 'smart-one-page' && !templateStore.pdfCanFitOnePage) {
+        message.warning('当前内容较多，建议使用两页简历或精简内容。');
+      }
       try {
         const blobUrl = await generatePdfBlob({
-          htmlContent: String(htmlContent),
+          htmlContent,
           theme,
           themeColor,
           isMark,
           watermarkText,
           isOnePage,
-          pages,
         });
         downloadDirect(blobUrl, name ? `${name}.pdf` : "resume.pdf");
         hide();
@@ -185,18 +179,17 @@ const HeaderBar = observer(() => {
         console.error('PDF export failed:', e);
         try {
           printPdfFallback({
-            htmlContent: String(htmlContent),
+            htmlContent,
             themeColor,
             isMark,
             watermarkText,
+            isOnePage,
           });
           message.warning(`PDF 服务不可用，已切换到浏览器打印: ${errMsg}`);
         } catch (fallbackError: unknown) {
           message.error(`生成简历出错: ${getErrorMessage(fallbackError)}`);
         }
       }
-      setPreview(false);
-      renderViewStyle(color, mdContent);
     }
   };
 
@@ -423,9 +416,6 @@ const HeaderBar = observer(() => {
           >
             <Form.Item name="name" label="简历名称">
               <Input placeholder="不填则系统命名" />
-            </Form.Item>
-            <Form.Item name="isOnePage" label="是否一页纸" valuePropName="checked">
-              <Switch />
             </Form.Item>
             <Form.Item name="isMark" label="添加水印" valuePropName="checked">
               <Switch />

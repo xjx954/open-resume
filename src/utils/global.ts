@@ -2,7 +2,6 @@ import { LOCAL_STORE, themes } from '@src/utils/const';
 import { markdownParserResume, sanitizeHtml } from "@utils/helper";
 import { renderPlugin, colorPlugin } from '@src/utils/plugins';
 import { getTheme } from "@utils/changeThemes";
-import htmlParser from 'rs-md-html-parser';
 
 export interface ResumeEditorRef {
     getValue: () => string;
@@ -59,15 +58,7 @@ export function renderViewStyle(color: string, markdown: string) {
 }
 
 export function renderResumePreviewMode(isPreview: boolean, color: string, markdown: string) {
-    const rsViewer = document.querySelector(".rs-view") as HTMLElement;
-    if (!rsViewer) return;
-
-    if (isPreview) {
-        htmlParser(rsViewer);
-    } else {
-        rsViewer.innerHTML = setHtmlView(color, markdown);
-        rsViewer.style.height = 'auto';
-    }
+    renderViewStyle(color, markdown);
 }
 
 export async function updateTemplate(
