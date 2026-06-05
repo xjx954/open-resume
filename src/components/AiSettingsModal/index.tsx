@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Alert, Button, Input, Modal } from "antd";
+import React, { useEffect, useMemo, useState } from "react";
+import { Button, Input, Modal } from "antd";
 import { AiConfig } from "@src/types/ai";
 import {
   loadAiConfig,
@@ -23,18 +23,22 @@ function getDefaultProviderKey(config: AiConfig) {
   if (!config.apiKey.trim()) {
     return "deepseek";
   }
-  const matched = providerPresets.find((item) =>
-    item.baseURL === config.baseURL && item.model === config.model
+  const matched = providerPresets.find(
+    (item) => item.baseURL === config.baseURL && item.model === config.model
   );
   return matched?.key || "deepseek";
 }
 
 const AiSettingsModal: React.FC<AiSettingsModalProps> = ({ visible, onCancel }) => {
   const [config, setConfig] = useState<AiConfig>(() => loadAiConfig());
-  const [selectedProviderKey, setSelectedProviderKey] = useState(() => getDefaultProviderKey(loadAiConfig()));
+  const [selectedProviderKey, setSelectedProviderKey] = useState(() =>
+    getDefaultProviderKey(loadAiConfig())
+  );
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({ type: "idle" });
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
+    type: "idle",
+  });
 
   const selectedProvider =
     providerPresets.find((item) => item.key === selectedProviderKey) ||
@@ -47,6 +51,7 @@ const AiSettingsModal: React.FC<AiSettingsModalProps> = ({ visible, onCancel }) 
       setConfig(loaded);
       setSelectedProviderKey(getDefaultProviderKey(loaded));
       setConnectionStatus({ type: "idle" });
+      setAdvancedOpen(false);
     }
   }, [visible]);
 
@@ -84,89 +89,148 @@ const AiSettingsModal: React.FC<AiSettingsModalProps> = ({ visible, onCancel }) 
     const result = await testAiConnection(config);
     setTesting(false);
     if (result.ok) {
-      setConnectionStatus({ type: "success", providerLabel: selectedProvider.label });
+      setConnectionStatus({
+        type: "success",
+        providerLabel: selectedProvider.label,
+      });
     } else {
-      setConnectionStatus({ type: "error", message: result.message || "连接失败，请检查配置。" });
+      setConnectionStatus({
+        type: "error",
+        message: result.message || "连接失败，请检查配置。",
+      });
     }
+  };
+
+  const isKeyFormatValid = useMemo(
+    () => config.apiKey.trim().length >= 10,
+    [config.apiKey]
+  );
+
+  const renderFooter = () => {
+    if (connectionStatus.type === "success") {
+      return (
+        <Button type="primary" size="large" onClick={onCancel}>
+          ✅ 完成配置
+        </Button>
+      );
+    }
+    return <Button onClick={onCancel}>取消</Button>;
   };
 
   return (
     <Modal
-      title="AI 服务配置向导"
+      title="AI 服务配置"
       visible={visible}
       onCancel={onCancel}
-      footer={null}
-      width={720}
+      footer={renderFooter()}
+      width={680}
     >
       <div className="ai-settings">
-        <Alert
-          type="info"
-          showIcon
-          message="按下面 3 步完成配置。普通用户只需要选择服务商并粘贴 API Key。"
-        />
+        {/* Guide banner */}
+        <div className="ai-settings__guide">
+          选服务商 → 粘贴 Key → 测试，三步就能用上 AI 助手
+        </div>
+
+        {/* Provider selection */}
         <div className="ai-settings__section">
-          <label>1. 选择 AI 服务商</label>
+          <label>选择服务商</label>
           <div className="ai-provider-grid">
             {providerPresets.map((item) => (
               <button
                 type="button"
                 key={item.key}
-                className={`ai-provider-card ${selectedProviderKey === item.key ? "ai-provider-card--active" : ""}`}
+                className={`ai-provider-card${
+                  selectedProviderKey === item.key
+                    ? " ai-provider-card--active"
+                    : ""
+                }`}
                 onClick={() => applyProviderPreset(item.key)}
               >
-                <span>{item.label}</span>
-                <strong>{item.model}</strong>
-                {item.key === "deepseek" && <em>推荐新用户使用</em>}
+                <span className="ai-provider-card__header">
+                  <strong>{item.label}</strong>
+                  {item.key === "deepseek" && <em>🔥 推荐</em>}
+                </span>
+                <small className="ai-provider-card__model">{item.model}</small>
+                <span className="ai-provider-card__desc">
+                  {item.description}
+                </span>
+                <span className="ai-provider-card__tags">
+                  {item.tags.map((tag) => (
+                    <i key={tag}>{tag}</i>
+                  ))}
+                </span>
+                <a
+                  className="ai-provider-card__keylink"
+                  href={item.helpUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  去获取 Key →
+                </a>
               </button>
             ))}
           </div>
         </div>
+
+        {/* API Key */}
         <div className="ai-settings__section">
-          <label>2. 获取并粘贴 API Key</label>
-          <div className="ai-settings__steps">
-            <span>打开 {selectedProvider.label} 控制台</span>
-            <span>创建或复制 API Key</span>
-            <span>粘贴到下方输入框</span>
-          </div>
-          <a className="ai-settings__help-link" href={selectedProvider.helpUrl} target="_blank" rel="noreferrer">
-            去申请 {selectedProvider.label} API Key
-          </a>
-          <Input.Password
-            value={config.apiKey}
-            onChange={(e) => updateApiKey(e.target.value)}
-            placeholder="粘贴你的 API Key"
-          />
-        </div>
-        <div className="ai-settings__section">
-          <label>3. 测试连接</label>
-          <div className="ai-settings__test-row">
-            <Button type="primary" loading={testing} disabled={!config.apiKey.trim()} onClick={handleTestConnection}>
-              测试连接
-            </Button>
-            {connectionStatus.type === "success" && (
-              <span className="ai-settings__status ai-settings__status--success">
-                AI 服务已连接：{connectionStatus.providerLabel}
-              </span>
+          <label className="ai-settings__key-label">
+            API Key
+            {isKeyFormatValid && (
+              <span className="ai-settings__key-ok">✅ 格式正确</span>
             )}
-            {connectionStatus.type === "error" && (
-              <span className="ai-settings__status ai-settings__status--error">
-                {connectionStatus.message}
-              </span>
-            )}
+          </label>
+          <div className="ai-settings__key-row">
+            <Input.Password
+              value={config.apiKey}
+              onChange={(e) => updateApiKey(e.target.value)}
+              placeholder="粘贴你的 API Key，通常以 sk- 开头"
+              size="large"
+            />
           </div>
         </div>
-        <Alert
-          type="warning"
-          showIcon
-          message="API Key 会保存在本机浏览器 localStorage 中。建议使用有额度限制的 Key，不要填入主账号高权限 Key。"
-        />
-        <Button type="link" className="ai-settings__advanced-toggle" onClick={() => setAdvancedOpen(!advancedOpen)}>
-          {advancedOpen ? "收起高级设置" : "展开高级设置"}
+
+        {/* Test */}
+        <div className="ai-settings__section ai-settings__section--test">
+          <Button
+            type="primary"
+            size="large"
+            loading={testing}
+            disabled={!config.apiKey.trim()}
+            onClick={handleTestConnection}
+          >
+            🧪 测试连接
+          </Button>
+          {connectionStatus.type === "success" && (
+            <div className="ai-settings__result ai-settings__result--success">
+              ✅ AI 服务已连接 · {connectionStatus.providerLabel}
+            </div>
+          )}
+          {connectionStatus.type === "error" && (
+            <div className="ai-settings__result ai-settings__result--error">
+              ❌ {connectionStatus.message}
+            </div>
+          )}
+        </div>
+
+        {/* Security footnote */}
+        <div className="ai-settings__footnote">
+          🔒 Key 仅保存在本机浏览器，建议使用有额度限制的 Key
+        </div>
+
+        {/* Advanced settings */}
+        <Button
+          type="link"
+          className="ai-settings__advanced-toggle"
+          onClick={() => setAdvancedOpen(!advancedOpen)}
+        >
+          {advancedOpen ? "收起高级设置" : "高级设置（通常无需修改）"}
         </Button>
         {advancedOpen && (
           <>
             <div className="ai-settings__section">
-              <label htmlFor="ai-base-url">Base URL</label>
+              <label htmlFor="ai-base-url">接口地址（Base URL）</label>
               <Input
                 id="ai-base-url"
                 value={config.baseURL}
@@ -175,7 +239,7 @@ const AiSettingsModal: React.FC<AiSettingsModalProps> = ({ visible, onCancel }) 
               />
             </div>
             <div className="ai-settings__section">
-              <label htmlFor="ai-model">Model</label>
+              <label htmlFor="ai-model">模型名称（Model）</label>
               <Input
                 id="ai-model"
                 value={config.model}

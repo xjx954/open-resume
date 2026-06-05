@@ -18,6 +18,8 @@ import {
   FilePdfOutlined,
   RobotOutlined,
   CheckCircleFilled,
+  HistoryOutlined,
+  SkinOutlined,
 } from "@ant-design/icons";
 import "./index.less";
 import { getTheme } from "@utils/changeThemes";
@@ -216,7 +218,7 @@ const HeaderBar = observer(() => {
     return () => window.removeEventListener('open-resume:ai-settings', openAiSettings);
   }, []);
 
-  // ------ Overflow menu (File, Templates, Shortcuts, History) ------
+  // ------ Overflow menu (File, Shortcuts, AI settings) ------
 
   const overflowMenu = (
     <Menu className="header-overflow-menu">
@@ -229,14 +231,8 @@ const HeaderBar = observer(() => {
         </Menu.Item>
       </Menu.ItemGroup>
       <Menu.Divider />
-      <Menu.Item key="select-template" onClick={() => setIsTemplateModalVisible(true)}>
-        选择模板
-      </Menu.Item>
       <Menu.Item key="shortcuts" onClick={() => setShortcutsVisible(true)}>
         icon快捷键
-      </Menu.Item>
-      <Menu.Item key="history" onClick={() => setHistoryVisible(true)}>
-        历史记录
       </Menu.Item>
       <Menu.Divider />
       <Menu.Item key="ai-settings" onClick={() => setIsAiSettingsVisible(true)}>
@@ -339,6 +335,24 @@ const HeaderBar = observer(() => {
 
         <button
           type="button"
+          className="rs-editor-toolbar__btn rs-editor-toolbar__btn--ghost"
+          onClick={() => setIsTemplateModalVisible(true)}
+        >
+          <SkinOutlined />
+          <span>模板</span>
+        </button>
+
+        <button
+          type="button"
+          className="rs-editor-toolbar__btn rs-editor-toolbar__btn--ghost"
+          onClick={() => setHistoryVisible(true)}
+        >
+          <HistoryOutlined />
+          <span>历史</span>
+        </button>
+
+        <button
+          type="button"
           className="rs-editor-toolbar__btn rs-editor-toolbar__btn--primary"
           onClick={() => setIsExportVisible(true)}
         >
@@ -349,10 +363,10 @@ const HeaderBar = observer(() => {
         <Dropdown overlay={overflowMenu} trigger={["click"]} placement="bottomRight">
           <button
             type="button"
-            className="rs-editor-toolbar__btn rs-editor-toolbar__btn--icon"
-            aria-label="更多操作"
+            className="rs-editor-toolbar__btn rs-editor-toolbar__btn--ghost"
           >
             <SettingOutlined />
+            <span>更多</span>
           </button>
         </Dropdown>
       </div>

@@ -23,18 +23,13 @@ export const defaultAiConfig: AiConfig = {
 
 export const providerPresets = [
   {
-    key: "openai",
-    label: "OpenAI",
-    baseURL: "https://api.openai.com/v1",
-    model: "gpt-4o-mini",
-    helpUrl: "https://platform.openai.com/api-keys",
-  },
-  {
     key: "deepseek",
     label: "DeepSeek V3",
     baseURL: "https://api.deepseek.com/v1",
     model: "deepseek-chat",
     helpUrl: "https://platform.deepseek.com/api_keys",
+    description: "国内直接注册，新用户赠免费额度，性价比最高",
+    tags: ["推荐", "国内直连", "免费额度"],
   },
   {
     key: "qwen",
@@ -42,6 +37,8 @@ export const providerPresets = [
     baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     model: "qwen-plus",
     helpUrl: "https://bailian.console.aliyun.com/",
+    description: "阿里云旗下，国内直接使用，百炼平台一键开通",
+    tags: ["国内直连", "阿里云"],
   },
   {
     key: "glm",
@@ -49,6 +46,17 @@ export const providerPresets = [
     baseURL: "https://open.bigmodel.cn/api/paas/v4",
     model: "glm-4",
     helpUrl: "https://open.bigmodel.cn/usercenter/apikeys",
+    description: "清华智谱出品，GLM-4 综合能力强",
+    tags: ["国内直连"],
+  },
+  {
+    key: "openai",
+    label: "OpenAI",
+    baseURL: "https://api.openai.com/v1",
+    model: "gpt-4o-mini",
+    helpUrl: "https://platform.openai.com/api-keys",
+    description: "国际主流，需海外网络环境和海外手机号注册",
+    tags: ["需海外网络"],
   },
 ];
 
