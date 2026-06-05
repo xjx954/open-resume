@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Empty, Input, Modal, Upload, message } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
+import { ClearOutlined, DeleteOutlined, InboxOutlined, PlusOutlined } from '@ant-design/icons';
 import { importMarkdownResume } from '@src/service/import/markdownImporter';
 import { normalizeResumeToMarkdown } from '@src/service/import/resumeNormalizer';
 import {
@@ -74,6 +74,39 @@ function normalizeUnparsed(schema: ResumeSchema): ResumeSchema {
   };
 }
 
+function normalizeEditableSchema(schema: ResumeSchema): ResumeSchema {
+  const normalizedSections = SECTION_KEYS.reduce((sections, key) => {
+    const section = schema.sections[key];
+    return {
+      ...sections,
+      [key]: {
+        ...section,
+        items: section.items.filter(item => item.trim()),
+        entries: section.entries
+          .map(entry => ({
+            ...entry,
+            name: entry.name.trim(),
+            role: entry.role.trim(),
+            date: entry.date.trim(),
+            bullets: entry.bullets.map(bullet => bullet.trim()).filter(Boolean),
+          }))
+          .filter(entry => entry.name || entry.role || entry.date || entry.bullets.length > 0),
+      },
+    };
+  }, {} as ResumeSchema['sections']);
+
+  return normalizeUnparsed({
+    ...schema,
+    basicInfo: {
+      name: schema.basicInfo.name.trim(),
+      title: schema.basicInfo.title.trim(),
+      summary: schema.basicInfo.summary.map(item => item.trim()).filter(Boolean),
+    },
+    contacts: schema.contacts.map(contact => contact.trim()).filter(Boolean),
+    sections: normalizedSections,
+  });
+}
+
 const ResumeImportModal: React.FC<Props> = ({ visible, onCancel, onConfirm }) => {
   const [sourceText, setSourceText] = useState('');
   const [editableSchema, setEditableSchema] = useState<ResumeSchema | null>(null);
@@ -102,10 +135,18 @@ const ResumeImportModal: React.FC<Props> = ({ visible, onCancel, onConfirm }) =>
   }, [updateSchema]);
 
   const updateSectionItems = useCallback((key: ResumeImportSectionKey, value: string) => {
-    updateSchema(schema => updateSection(schema, key, section => ({
-      ...section,
-      items: textToLines(value),
-    })));
+    updateSchema(schema => {
+      const items = textToLines(value);
+      const nextSchema = updateSection(schema, key, section => ({
+        ...section,
+        items,
+      }));
+      if (key !== 'unclassified') return nextSchema;
+      return {
+        ...nextSchema,
+        unparsedBlocks: items,
+      };
+    });
   }, [updateSchema]);
 
   const updateEntry = useCallback((
@@ -119,12 +160,64 @@ const ResumeImportModal: React.FC<Props> = ({ visible, onCancel, onConfirm }) =>
     })));
   }, [updateSchema]);
 
+  const clearSection = useCallback((key: ResumeImportSectionKey) => {
+    updateSchema(schema => {
+      const nextSchema = updateSection(schema, key, section => ({
+        ...section,
+        items: [],
+        entries: [],
+      }));
+      if (key !== 'unclassified') return nextSchema;
+      return {
+        ...nextSchema,
+        unparsedBlocks: [],
+      };
+    });
+  }, [updateSchema]);
+
+  const deleteEntry = useCallback((key: ResumeImportSectionKey, entryIndex: number) => {
+    updateSchema(schema => updateSection(schema, key, section => ({
+      ...section,
+      entries: section.entries.filter((_, index) => index !== entryIndex),
+    })));
+  }, [updateSchema]);
+
+  const addEntryBullet = useCallback((key: ResumeImportSectionKey, entryIndex: number) => {
+    updateEntry(key, entryIndex, entry => ({
+      ...entry,
+      bullets: [...entry.bullets, ''],
+    }));
+  }, [updateEntry]);
+
+  const updateEntryBullet = useCallback((
+    key: ResumeImportSectionKey,
+    entryIndex: number,
+    bulletIndex: number,
+    value: string,
+  ) => {
+    updateEntry(key, entryIndex, entry => ({
+      ...entry,
+      bullets: entry.bullets.map((bullet, index) => (index === bulletIndex ? value : bullet)),
+    }));
+  }, [updateEntry]);
+
+  const deleteEntryBullet = useCallback((
+    key: ResumeImportSectionKey,
+    entryIndex: number,
+    bulletIndex: number,
+  ) => {
+    updateEntry(key, entryIndex, entry => ({
+      ...entry,
+      bullets: entry.bullets.filter((_, index) => index !== bulletIndex),
+    }));
+  }, [updateEntry]);
+
   const handleConfirm = useCallback(() => {
     if (!editableSchema) {
       message.warning('请先粘贴简历内容或上传 .md 文件');
       return;
     }
-    onConfirm(normalizeResumeToMarkdown(normalizeUnparsed(editableSchema)));
+    onConfirm(normalizeResumeToMarkdown(normalizeEditableSchema(editableSchema)));
     setSourceText('');
     setEditableSchema(null);
   }, [editableSchema, onConfirm]);
@@ -146,7 +239,20 @@ const ResumeImportModal: React.FC<Props> = ({ visible, onCancel, onConfirm }) =>
 
     return (
       <section className="resume-import-section" key={key}>
-        <h4>{section.title}</h4>
+        <div className="resume-import-section__header">
+          <h4>{section.title}</h4>
+          {hasContent && (
+            <Button
+              size="small"
+              type="link"
+              danger
+              icon={key === 'unclassified' ? <ClearOutlined /> : <DeleteOutlined />}
+              onClick={() => clearSection(key)}
+            >
+              {key === 'unclassified' ? '清空未归类' : '删除本段'}
+            </Button>
+          )}
+        </div>
         {!hasContent && <p className="resume-import-empty">未识别到内容</p>}
 
         {section.items.length > 0 && (
@@ -160,6 +266,25 @@ const ResumeImportModal: React.FC<Props> = ({ visible, onCancel, onConfirm }) =>
 
         {section.entries.map((entry, index) => (
           <div className="resume-import-entry" key={`${key}-${index}`}>
+            <div className="resume-import-entry__toolbar">
+              <Button
+                size="small"
+                type="link"
+                icon={<PlusOutlined />}
+                onClick={() => addEntryBullet(key, index)}
+              >
+                新增描述
+              </Button>
+              <Button
+                size="small"
+                type="link"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => deleteEntry(key, index)}
+              >
+                删除条目
+              </Button>
+            </div>
             <div className="resume-import-entry__grid">
               <Input
                 value={entry.name}
@@ -177,13 +302,29 @@ const ResumeImportModal: React.FC<Props> = ({ visible, onCancel, onConfirm }) =>
                 onChange={event => updateEntry(key, index, item => ({ ...item, date: event.target.value }))}
               />
             </div>
-            <TextArea
-              className="resume-import-field"
-              value={linesToText(entry.bullets)}
-              placeholder="每行一条描述"
-              onChange={event => updateEntry(key, index, item => ({ ...item, bullets: textToLines(event.target.value) }))}
-              autoSize={{ minRows: 2, maxRows: 8 }}
-            />
+            <div className="resume-import-bullets">
+              {entry.bullets.length === 0 && (
+                <p className="resume-import-empty">暂无描述</p>
+              )}
+              {entry.bullets.map((bullet, bulletIndex) => (
+                <div className="resume-import-bullet" key={`${key}-${index}-bullet-${bulletIndex}`}>
+                  <Input
+                    value={bullet}
+                    placeholder="描述内容"
+                    onChange={event => updateEntryBullet(key, index, bulletIndex, event.target.value)}
+                  />
+                  <Button
+                    size="small"
+                    type="link"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => deleteEntryBullet(key, index, bulletIndex)}
+                  >
+                    删除
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </section>

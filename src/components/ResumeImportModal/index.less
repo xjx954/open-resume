@@ -30,11 +30,23 @@
   padding: 12px 0;
   border-bottom: 1px solid #eef0f2;
 
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
   h4 {
-    margin: 0 0 8px;
+    margin: 0;
     font-size: 13px;
     font-weight: 650;
     color: #1f2937;
+  }
+
+  > h4 {
+    margin-bottom: 8px;
   }
 
   ul {
@@ -72,6 +84,13 @@
 .resume-import-entry {
   padding: 8px 0;
 
+  &__toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
   &__grid {
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 150px;
@@ -107,6 +126,19 @@
   margin-top: 6px;
 }
 
+.resume-import-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.resume-import-bullet {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+
 @media (max-width: 860px) {
   .resume-import-layout {
     grid-template-columns: 1fr;
@@ -117,6 +149,10 @@
   }
 
   .resume-import-entry__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resume-import-bullet {
     grid-template-columns: 1fr;
   }
 }
