@@ -53,7 +53,7 @@
 .resume-import-basic {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 
   strong {
     font-size: 16px;
@@ -71,6 +71,13 @@
 
 .resume-import-entry {
   padding: 8px 0;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 150px;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
 
   &__title {
     display: flex;
@@ -96,6 +103,10 @@
   }
 }
 
+.resume-import-field {
+  margin-top: 6px;
+}
+
 @media (max-width: 860px) {
   .resume-import-layout {
     grid-template-columns: 1fr;
@@ -103,5 +114,9 @@
 
   .resume-import-preview {
     max-height: 420px;
+  }
+
+  .resume-import-entry__grid {
+    grid-template-columns: 1fr;
   }
 }
