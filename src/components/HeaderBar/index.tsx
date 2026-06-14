@@ -135,7 +135,6 @@ const HeaderBar = observer(() => {
       editor.replaceRange(`\n\n${content}`, editor.getCursor());
       const insertedContent = editor.getValue();
       templateStore.setMdContent(insertedContent);
-      localStorage.setItem(LOCAL_STORE.MD_RESUME, insertedContent);
       renderViewStyle(color, insertedContent);
     } else {
       editor?.setValue(nextContent);
@@ -173,8 +172,6 @@ const HeaderBar = observer(() => {
         downloadDirect(blobUrl, name ? `${name}.pdf` : "resume.pdf");
         hide();
         message.success("恭喜你，导出成功!");
-        // Clean up blob URL after a short delay
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
       } catch (e: unknown) {
         hide();
         const errMsg = getErrorMessage(e);

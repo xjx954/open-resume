@@ -44,7 +44,6 @@ const Editor: React.FC = observer(() => {
       timerSave = window.setTimeout(() => {
         const content = editor.getValue();
         templateStore.setMdContent(content);
-        localStorage.setItem(LOCAL_STORE.MD_RESUME, content);
         setMdHistory({
           theme,
           color,

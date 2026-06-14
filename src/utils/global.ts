@@ -72,8 +72,6 @@ export async function updateTemplate(
         document.body.style.setProperty("--bg", curObj.defaultColor);
         setColor(curObj.defaultColor);
         renderViewStyle(curObj.defaultColor, markdown);
-        localStorage.setItem(LOCAL_STORE.MD_THEME, curObj.id);
-        localStorage.setItem(LOCAL_STORE.MD_COLOR, curObj.defaultColor);
     }
 }
 

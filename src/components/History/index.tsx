@@ -33,14 +33,10 @@ const History: React.FC<Props> = ({ visible: controlledVisible, onClose }) => {
   const handleSelect = (md: string, theme: string, color: string) => {
     // 设置主题
     setTheme(theme);
-    localStorage.setItem(LOCAL_STORE.MD_THEME, theme);
     // 设置颜色
     setColor(color);
-    localStorage.setItem(LOCAL_STORE.MD_COLOR, color);
     // 设置内容
     setMdContent(md)
-    // 持久化设置
-    localStorage.setItem(LOCAL_STORE.MD_RESUME, md);
     // 临时设置
     setTimeout(async () => {
       // 设置编辑器内容

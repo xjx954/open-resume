@@ -216,7 +216,7 @@ const AiSettingsModal: React.FC<AiSettingsModalProps> = ({ visible, onCancel }) 
 
         {/* Security footnote */}
         <div className="ai-settings__footnote">
-          🔒 Key 仅保存在本机浏览器，建议使用有额度限制的 Key
+          🔒 API Key 会以明文形式保存在本机浏览器 localStorage。请只使用有额度限制、可随时撤销的 Key，不要在不可信设备上配置。
         </div>
 
         {/* Advanced settings */}

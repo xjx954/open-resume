@@ -5,10 +5,16 @@ import { ResumeBlock } from '@src/types/resume';
 import { blocksToMarkdown, markdownToBlocks, sanitizeBlock } from '@src/utils/blockSerializer';
 import { A4_HEIGHT_PX, PdfLayoutMode, ResumeDensity } from '@src/service/pdfExportHtml';
 
+function warnStorageFailure(key: string) {
+  console.warn(`Open Resume 无法写入本地存储：${key}。当前修改仍保留在页面内存中，请尽快导出备份。`);
+}
+
 const storedTheme = localStorage.getItem(LOCAL_STORE.MD_THEME);
 const default_theme = resolveThemeId(storedTheme);
 if (storedTheme && storedTheme !== default_theme) {
-  localStorage.setItem(LOCAL_STORE.MD_THEME, default_theme);
+  try {
+    localStorage.setItem(LOCAL_STORE.MD_THEME, default_theme);
+  } catch { warnStorageFailure(LOCAL_STORE.MD_THEME); }
 }
 
 const localContent = localStorage.getItem(LOCAL_STORE.MD_RESUME);
@@ -27,10 +33,12 @@ function loadBlocks(): ResumeBlock[] {
 }
 
 function persistBlocks(blocks: ResumeBlock[], mdContent: string) {
-  localStorage.setItem(LOCAL_STORE.MD_RESUME, mdContent);
+  try {
+    localStorage.setItem(LOCAL_STORE.MD_RESUME, mdContent);
+  } catch { warnStorageFailure(LOCAL_STORE.MD_RESUME); }
   try {
     localStorage.setItem(LOCAL_STORE.MD_BLOCKS, JSON.stringify(blocks));
-  } catch { /* quota exceeded, non-critical */ }
+  } catch { warnStorageFailure(LOCAL_STORE.MD_BLOCKS); }
 }
 
 function cloneBlocks(blocks: ResumeBlock[]): ResumeBlock[] {
@@ -102,11 +110,16 @@ class TemplateStore {
 
   setTheme = (theme: string) => {
     this.theme = theme;
+    try {
+      localStorage.setItem(LOCAL_STORE.MD_THEME, theme);
+    } catch { warnStorageFailure(LOCAL_STORE.MD_THEME); }
   }
 
   setColor = (color: string) => {
     this.color = color;
-    localStorage.setItem(LOCAL_STORE.MD_COLOR, color);
+    try {
+      localStorage.setItem(LOCAL_STORE.MD_COLOR, color);
+    } catch { warnStorageFailure(LOCAL_STORE.MD_COLOR); }
     document.body.style.setProperty("--bg", color);
     this.syncPreview();
   };

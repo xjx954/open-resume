@@ -27,6 +27,9 @@ describe("AiSettingsModal", () => {
     ).toBeInTheDocument();
     expect(queryByLabelText("接口地址（Base URL）")).not.toBeInTheDocument();
     expect(queryByLabelText("模型名称（Model）")).not.toBeInTheDocument();
+    expect(
+      getByText(/API Key 会以明文形式保存在本机浏览器 localStorage/)
+    ).toBeInTheDocument();
   });
 
   it("saves the selected provider preset when users paste an API key", () => {

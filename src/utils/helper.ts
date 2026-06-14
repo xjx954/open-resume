@@ -162,7 +162,10 @@ export function downloadDirect(url: string, name: string) {
     aTag.download = name;
     aTag.target = '_blank';
     aTag.href = url;
-    aTag.click()
+    aTag.click();
+    if (url.startsWith('blob:')) {
+        window.setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }
 }
 
 export function downloadByContent(content: BlobPart, filename: string, type: string) {

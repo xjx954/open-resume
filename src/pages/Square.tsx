@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Empty, Input, Modal, Popconfirm, Tag } from "antd";
+import { Alert, Button, Empty, Input, Modal, Popconfirm, Tag } from "antd";
 import { DownloadOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
 import { downloadDirect } from "@utils/helper";
 import { useStores } from "@src/store";
-import { LOCAL_STORE, themes } from "@src/utils/const";
+import { themes } from "@src/utils/const";
 import { TemplateItem, TemplateWithTheme } from "@src/types/template";
 import TemplatePreview from "@src/components/TemplatePreview";
 import "./Square.less";
@@ -32,6 +32,7 @@ const Square = () => {
   const [category, setCategory] = useState("all");
   const [template, setTemplate] = useState<TemplateWithTheme | null>(null);
   const [fullscreenTemplate, setFullscreenTemplate] = useState<TemplateWithTheme | null>(null);
+  const [loadError, setLoadError] = useState("");
   const { templateStore, globalStore: { setCurTab } } = useStores();
   const { setColor, setMdContent, setTheme } = templateStore;
   const history = useHistory();
@@ -39,11 +40,8 @@ const Square = () => {
   const applyTemplate = useCallback((nextTemplate: TemplateWithTheme) => {
     const { theme, themeColor, template: md } = nextTemplate;
     setTheme(theme);
-    localStorage.setItem(LOCAL_STORE.MD_THEME, theme);
     setColor(themeColor);
-    localStorage.setItem(LOCAL_STORE.MD_COLOR, themeColor);
     setMdContent(md);
-    localStorage.setItem(LOCAL_STORE.MD_RESUME, md);
     history.push("/editor");
     setCurTab("/editor");
   }, [history, setColor, setCurTab, setMdContent, setTheme]);
@@ -57,19 +55,23 @@ const Square = () => {
     const file = new Blob([item.template]);
     const url = URL.createObjectURL(file);
     downloadDirect(url, `${item.title}.md`);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }, []);
 
   useEffect(() => {
     const queryTemplate = async () => {
-      const result = await axios.get<TemplateItem[]>("/data/template.json");
-      const resultList = result.data.map((item) => ({
-        ...item,
-        themeColor:
-          themes.find((theme) => item.theme === theme.id)?.defaultColor ||
-          themes[0].defaultColor,
-      }));
-      setList(resultList.sort((a, b) => a.previewPriority - b.previewPriority));
+      try {
+        setLoadError("");
+        const result = await axios.get<TemplateItem[]>("/data/template.json");
+        const resultList = result.data.map((item) => ({
+          ...item,
+          themeColor:
+            themes.find((theme) => item.theme === theme.id)?.defaultColor ||
+            themes[0].defaultColor,
+        }));
+        setList(resultList.sort((a, b) => a.previewPriority - b.previewPriority));
+      } catch {
+        setLoadError("模板加载失败，请检查网络后重试。");
+      }
     };
     queryTemplate();
   }, []);
@@ -192,7 +194,9 @@ const Square = () => {
           ))}
         </div>
 
-        {filteredList.length ? (
+        {loadError ? (
+          <Alert type="error" showIcon message={loadError} />
+        ) : filteredList.length ? (
           <div className="rs-square-container">
             {filteredList.map((item) => (
               <article className={`rs-square rs-square--${item.theme}`} key={item.id}>

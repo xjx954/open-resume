@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Input, Button } from 'antd';
+import { Input, Button, message } from 'antd';
 import { UserOutlined, CameraOutlined, DeleteOutlined } from '@ant-design/icons';
 import { HeaderData } from '@src/types/resume';
 
@@ -58,12 +58,15 @@ const HeaderBlock: React.FC<Props> = ({ data, onChange }) => {
     const file = e.target.files?.[0];
     if (!file) return;
     // Only accept image files
-    if (!file.type.startsWith('image/')) return;
+    if (!file.type.startsWith('image/')) {
+      message.warning('请选择图片文件');
+      return;
+    }
     try {
       const dataUrl = await resizeImageToDataUrl(file, 200);
       onChange({ ...sanitizedData, photo: dataUrl });
     } catch {
-      // Silently fail — the user can try again
+      message.error('图片读取失败，请换一张图片重试');
     }
     // Reset so the same file can be re-selected
     if (fileInputRef.current) {

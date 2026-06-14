@@ -25,27 +25,31 @@ function App() {
 
   return (
     <div className="rs-root">
-      <ErrorBoundary>
-        <Router>
-          <Switch>
-            <Route exact path="/">
+      <Router>
+        <Switch>
+          <Route exact path="/">
+            <ErrorBoundary>
               <HeaderCommonBar></HeaderCommonBar>
               <Home></Home>
-            </Route>
-            <Route path="/editor">
+            </ErrorBoundary>
+          </Route>
+          <Route path="/editor">
+            <ErrorBoundary>
               <HeaderCommonBar></HeaderCommonBar>
               <HeaderBar></HeaderBar>
               <Main></Main>
-            </Route>
-            <Route path="/square">
+            </ErrorBoundary>
+          </Route>
+          <Route path="/square">
+            <ErrorBoundary>
               <HeaderCommonBar></HeaderCommonBar>
               <div className="rs-body">
                 <Square></Square>
               </div>
-            </Route>
-          </Switch>
-        </Router>
-      </ErrorBoundary>
+            </ErrorBoundary>
+          </Route>
+        </Switch>
+      </Router>
     </div>
   );
 }
