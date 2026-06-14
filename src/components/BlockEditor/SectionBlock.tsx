@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { Input, Select } from 'antd';
 import { PlusOutlined, CloseOutlined, DownOutlined, RightOutlined, UpOutlined } from '@ant-design/icons';
 import { SectionData, SectionItem, SectionEntry } from '@src/types/resume';
-
-function generateId(): string {
-  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-}
+import { generateId } from '@src/utils/id';
 
 export function reorderEntries(entries: SectionEntry[], fromIndex: number, toIndex: number) {
   if (

@@ -1,5 +1,6 @@
 import { GeneratedBullet } from "@src/types/ai";
 import { ResumeBlock, SectionData, SectionEntry, SectionItem } from "@src/types/resume";
+import { generateId } from "@src/utils/id";
 
 export interface ApplyGeneratedBulletResult {
   blocks: ResumeBlock[];
@@ -55,14 +56,14 @@ function sectionMatches(title: string, targetSection: string) {
 function findTargetSectionIndex(blocks: ResumeBlock[], targetSection: string) {
   return blocks.findIndex((block) => {
     if (block.type !== "section") return false;
-    return sectionMatches((block.data as SectionData).title, targetSection);
+    return sectionMatches(block.data.title, targetSection);
   });
 }
 
 function findFallbackSectionIndex(blocks: ResumeBlock[]) {
   return blocks.findIndex((block) => {
     if (block.type !== "section") return false;
-    return normalize((block.data as SectionData).title) === normalize(FALLBACK_SECTION_TITLE);
+    return normalize(block.data.title) === normalize(FALLBACK_SECTION_TITLE);
   });
 }
 
@@ -92,14 +93,14 @@ function findEntryIndex(entries: SectionEntry[], hint?: string) {
 
 function createFallbackSection(content: string): ResumeBlock {
   return {
-    id: `ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    id: generateId(),
     type: "section",
     data: {
       level: 2,
       title: FALLBACK_SECTION_TITLE,
       items: [{ type: "bullet", content }],
       entries: [],
-    } as SectionData,
+    },
   };
 }
 
@@ -129,7 +130,16 @@ export function applyGeneratedBulletToBlocks(
   }
 
   const targetBlock = nextBlocks[targetIndex];
-  const targetData = targetBlock.data as SectionData;
+  if (targetBlock.type !== "section") {
+    return {
+      blocks,
+      applied: false,
+      duplicate: false,
+      targetTitle: FALLBACK_SECTION_TITLE,
+      notice,
+    };
+  }
+  const targetData = targetBlock.data;
   if (hasDuplicate(targetData, content)) {
     return {
       blocks,

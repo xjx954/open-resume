@@ -14,7 +14,7 @@ const menu = [
 const githubUrl = "https://github.com/xjx954/open-resume";
 
 const HeaderCommonBar = observer(() => {
-  const { globalStore } = useStores();
+  const { globalStore, templateStore } = useStores();
   const { curTab, setCurTab } = globalStore;
   const location = useLocation();
 
@@ -22,11 +22,22 @@ const HeaderCommonBar = observer(() => {
     setCurTab(location.pathname);
   }, [location.pathname, setCurTab]);
 
+  const guardNavigation = (event: React.MouseEvent, targetPath: string) => {
+    if (
+      location.pathname === "/editor" &&
+      targetPath !== "/editor" &&
+      templateStore.hasUnsavedChanges &&
+      !window.confirm("当前简历有尚未归档到历史记录的修改。离开编辑器不会清空本机内容，但继续使用模板可能覆盖当前内容。是否继续？")
+    ) {
+      event.preventDefault();
+    }
+  };
+
   return (
     <div className="rsC-header">
       <div className="rsC-header__logo">
         <h1>
-          <Link to="/">
+          <Link to="/" onClick={(event) => guardNavigation(event, "/")}>
             <img src="/images/app-logo.svg" alt="" />
             <span>Open Resume</span>
           </Link>
@@ -40,7 +51,7 @@ const HeaderCommonBar = observer(() => {
                 key={item.url}
                 className={`nav-li ${curTab === item.url ? "current" : ""}`}
               >
-                <Link to={item.url}>{item.title}</Link>
+                <Link to={item.url} onClick={(event) => guardNavigation(event, item.url)}>{item.title}</Link>
               </li>
             );
           })}
@@ -51,7 +62,7 @@ const HeaderCommonBar = observer(() => {
           </li>
         </ul>
       </div>
-      <Link className="rsC-header__cta" to="/editor">
+      <Link className="rsC-header__cta" to="/editor" onClick={(event) => guardNavigation(event, "/editor")}>
         开始制作
       </Link>
     </div>

@@ -1,7 +1,31 @@
-export interface ResumeBlock {
+export type ResumeBlock =
+  | HeaderBlock
+  | TwoColumnBlock
+  | SectionBlock
+  | RawMarkdownBlock;
+
+export interface HeaderBlock {
   id: string;
-  type: 'header' | 'two-column' | 'section' | 'raw-markdown';
-  data: HeaderData | TwoColumnData | SectionData | RawMarkdownData;
+  type: 'header';
+  data: HeaderData;
+}
+
+export interface TwoColumnBlock {
+  id: string;
+  type: 'two-column';
+  data: TwoColumnData;
+}
+
+export interface SectionBlock {
+  id: string;
+  type: 'section';
+  data: SectionData;
+}
+
+export interface RawMarkdownBlock {
+  id: string;
+  type: 'raw-markdown';
+  data: RawMarkdownData;
 }
 
 export interface HeaderData {

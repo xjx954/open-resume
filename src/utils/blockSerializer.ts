@@ -5,18 +5,10 @@ import {
   SectionData,
   SectionEntry,
   SectionItem,
-  RawMarkdownData,
   ContactItem,
   ColumnContent,
 } from '@src/types/resume';
-
-// ============================================================
-// ID generator (lightweight, no uuid dep needed for MVP)
-// ============================================================
-
-function generateId(): string {
-  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-}
+import { generateId } from '@src/utils/id';
 
 // ============================================================
 // Data sanitization — strip HTML tags from plain-text fields
@@ -72,11 +64,11 @@ function sanitizeTwoColumnData(data: TwoColumnData): TwoColumnData {
 export function sanitizeBlock(block: ResumeBlock): ResumeBlock {
   switch (block.type) {
     case 'header':
-      return { ...block, data: sanitizeHeaderData(block.data as HeaderData) };
+      return { ...block, data: sanitizeHeaderData(block.data) };
     case 'section':
-      return { ...block, data: sanitizeSectionData(block.data as SectionData) };
+      return { ...block, data: sanitizeSectionData(block.data) };
     case 'two-column':
-      return { ...block, data: sanitizeTwoColumnData(block.data as TwoColumnData) };
+      return { ...block, data: sanitizeTwoColumnData(block.data) };
     default:
       return block;
   }
@@ -89,7 +81,7 @@ export function sanitizeBlock(block: ResumeBlock): ResumeBlock {
 export function blockToMarkdown(block: ResumeBlock): string {
   switch (block.type) {
     case 'header': {
-      const d = block.data as HeaderData;
+      const d = block.data;
       const lines: string[] = [`# ${d.name}`];
       if (d.title) {
         lines.push('', d.title);
@@ -103,13 +95,13 @@ export function blockToMarkdown(block: ResumeBlock): string {
       return lines.join('\n');
     }
     case 'two-column': {
-      const d = block.data as TwoColumnData;
+      const d = block.data;
       const leftMd = columnContentToMarkdown(d.left);
       const rightMd = columnContentToMarkdown(d.right);
       return `::: left\n\n${leftMd}\n\n:::\n\n::: right\n\n${rightMd}\n\n:::`;
     }
     case 'section': {
-      const d = block.data as SectionData;
+      const d = block.data;
       const lines: string[] = [`## ${d.title}`];
       if (d.subtitle) {
         lines.push('', d.subtitle);
@@ -145,7 +137,7 @@ export function blockToMarkdown(block: ResumeBlock): string {
       return lines.join('\n');
     }
     case 'raw-markdown': {
-      const d = block.data as RawMarkdownData;
+      const d = block.data;
       return d.markdown;
     }
     default:
@@ -274,7 +266,7 @@ export function markdownToBlocks(md: string): ResumeBlock[] {
             title: text,
             items: [],
             entries: [entryResult.entry],
-          } as SectionData,
+          },
         });
         i = entryResult.nextIndex;
         continue;
@@ -352,7 +344,7 @@ function tryParseTwoColumn(
       data: {
         left: parseColumnContent(leftLines.join('\n')),
         right: parseColumnContent(rightLines.join('\n')),
-      } as TwoColumnData,
+      },
     },
     nextIndex: i,
   };
@@ -532,7 +524,7 @@ function parseSectionWithEntries(
     block: {
       id: generateId(),
       type: 'section',
-      data: { level: 2, title, subtitle, items, entries } as SectionData,
+      data: { level: 2, title, subtitle, items, entries },
     },
     nextIndex: i,
   };
@@ -565,7 +557,7 @@ function collectRawMarkdown(
     block: {
       id: generateId(),
       type: 'raw-markdown',
-      data: { markdown: collected.join('\n').trim() } as RawMarkdownData,
+      data: { markdown: collected.join('\n').trim() },
     },
     nextIndex: i,
   };

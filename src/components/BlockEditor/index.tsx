@@ -33,10 +33,6 @@ import {
 } from '@ant-design/icons';
 import {
   ResumeBlock,
-  HeaderData,
-  TwoColumnData,
-  SectionData,
-  RawMarkdownData,
 } from '@src/types/resume';
 import HeaderBlock from './HeaderBlock';
 import TwoColumnBlock from './TwoColumnBlock';
@@ -44,6 +40,7 @@ import SectionBlock from './SectionBlock';
 import RawMarkdownBlock from './RawMarkdownBlock';
 import AddBlockMenu from './AddBlockMenu';
 import InlineAiRewrite from './InlineAiRewrite';
+import { generateId } from '@src/utils/id';
 import './BlockEditor.less';
 
 // ============================================================
@@ -67,7 +64,7 @@ const BLOCK_LABEL: Record<ResumeBlock['type'], string> = {
 function getBlockMeta(block: ResumeBlock): { icon: React.ReactNode; label: string } {
   const icon = BLOCK_ICON[block.type];
   if (block.type === 'section') {
-    const d = block.data as SectionData;
+    const d = block.data;
     const label = d.title || '自定义模块';
     return { icon, label };
   }
@@ -76,13 +73,13 @@ function getBlockMeta(block: ResumeBlock): { icon: React.ReactNode; label: strin
 
 function getBlockSummary(block: ResumeBlock): string | null {
   if (block.type === 'header') {
-    const d = block.data as HeaderData;
+    const d = block.data;
     if (d.title) return d.title;
     if (d.name) return d.name;
     return null;
   }
   if (block.type === 'section') {
-    const d = block.data as SectionData;
+    const d = block.data;
     const entryCount = (d.entries || []).length;
     const itemCount = d.items.length;
     if (entryCount === 0 && itemCount === 0) return '无条目';
@@ -93,7 +90,7 @@ function getBlockSummary(block: ResumeBlock): string | null {
     return parts.join(' · ');
   }
   if (block.type === 'two-column') {
-    const d = block.data as TwoColumnData;
+    const d = block.data;
     const n = d.left.contacts.length + d.right.contacts.length;
     const parts: string[] = [];
     if (d.left.text) parts.push(d.left.text.slice(0, 30) + (d.left.text.length > 30 ? '…' : ''));
@@ -101,7 +98,7 @@ function getBlockSummary(block: ResumeBlock): string | null {
     return parts.join(' · ') || null;
   }
   if (block.type === 'raw-markdown') {
-    const d = block.data as RawMarkdownData;
+    const d = block.data;
     const preview = d.markdown.replace(/\n/g, ' ').slice(0, 40);
     return preview || null;
   }
@@ -110,7 +107,7 @@ function getBlockSummary(block: ResumeBlock): string | null {
 
 function getItemCountBadge(block: ResumeBlock): string | null {
   if (block.type === 'section') {
-    const d = block.data as SectionData;
+    const d = block.data;
     const n = (d.entries || []).length;
     if (n > 0) return `${n} 个`;
     const m = d.items.length;
@@ -118,7 +115,7 @@ function getItemCountBadge(block: ResumeBlock): string | null {
     return null;
   }
   if (block.type === 'two-column') {
-    const d = block.data as TwoColumnData;
+    const d = block.data;
     const n = d.left.contacts.length + d.right.contacts.length;
     if (n > 0) return `${n}`;
     return null;
@@ -141,10 +138,6 @@ interface SortableBlockProps {
   onDuplicate: (block: ResumeBlock) => void;
   onMoveUp: (index: number) => void;
   onMoveDown: (index: number) => void;
-}
-
-function generateId(): string {
-  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
 }
 
 const SortableBlock: React.FC<SortableBlockProps> = ({
@@ -262,25 +255,25 @@ const SortableBlock: React.FC<SortableBlockProps> = ({
       <div className={`block-card-body ${collapsed ? 'block-card-body--collapsed' : ''}`}>
         {block.type === 'header' && (
           <HeaderBlock
-            data={block.data as HeaderData}
+            data={block.data}
             onChange={data => onUpdate(block.id, data)}
           />
         )}
         {block.type === 'two-column' && (
           <TwoColumnBlock
-            data={block.data as TwoColumnData}
+            data={block.data}
             onChange={data => onUpdate(block.id, data)}
           />
         )}
         {block.type === 'section' && (
           <SectionBlock
-            data={block.data as SectionData}
+            data={block.data}
             onChange={data => onUpdate(block.id, data)}
           />
         )}
         {block.type === 'raw-markdown' && (
           <RawMarkdownBlock
-            data={block.data as RawMarkdownData}
+            data={block.data}
             onChange={data => onUpdate(block.id, data)}
           />
         )}

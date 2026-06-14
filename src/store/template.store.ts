@@ -55,6 +55,7 @@ class TemplateStore {
   pdfDensity: ResumeDensity = 'normal';
   pdfContentHeight = A4_HEIGHT_PX;
   pdfCanFitOnePage = true;
+  hasUnsavedChanges = false;
 
   // Block model (the source of truth for block editor)
   blocks: ResumeBlock[] = loadBlocks();
@@ -65,6 +66,7 @@ class TemplateStore {
   undoStack: ResumeBlock[][] = [];
   redoStack: ResumeBlock[][] = [];
   maxUndo = 50;
+  pendingBlockCommitTimer: number | null = null;
 
   constructor() {
     makeAutoObservable(this, {
@@ -104,6 +106,14 @@ class TemplateStore {
     this.pdfCanFitOnePage = canFitOnePage;
   }
 
+  markChanged = () => {
+    this.hasUnsavedChanges = true;
+  }
+
+  markSaved = () => {
+    this.hasUnsavedChanges = false;
+  }
+
   setTempTheme = (theme: string) => {
     this.tempTheme = theme;
   }
@@ -125,8 +135,32 @@ class TemplateStore {
   };
 
   // Sync preview HTML from current blocks + color
-  syncPreview = () => {
-    this.html = setHtmlView(this.color, this.mdContent);
+  syncPreview = (markdown = this.mdContent) => {
+    this.html = setHtmlView(this.color, markdown);
+  }
+
+  commitBlocks = () => {
+    const md = blocksToMarkdown(this.blocks);
+    persistBlocks(this.blocks, md);
+    this.syncPreview(md);
+  }
+
+  scheduleBlockCommit = () => {
+    if (this.pendingBlockCommitTimer != null) {
+      window.clearTimeout(this.pendingBlockCommitTimer);
+    }
+    this.pendingBlockCommitTimer = window.setTimeout(() => {
+      this.pendingBlockCommitTimer = null;
+      this.commitBlocks();
+    }, 300);
+  }
+
+  flushPendingBlockCommit = () => {
+    if (this.pendingBlockCommitTimer != null) {
+      window.clearTimeout(this.pendingBlockCommitTimer);
+      this.pendingBlockCommitTimer = null;
+      this.commitBlocks();
+    }
   }
 
   pushUndo = () => {
@@ -148,11 +182,12 @@ class TemplateStore {
   setMdContent = (content: string, recordUndo = true) => {
     if (recordUndo) {
       this.pushUndo();
+      this.markChanged();
     }
     this.mdContent = content;
     this.blocks = this.blocks.map(sanitizeBlock);
     persistBlocks(this.blocks, content);
-    this.syncPreview();
+    this.syncPreview(content);
   }
 
   setHtml = (value: string) => {
@@ -169,14 +204,20 @@ class TemplateStore {
 
   // ——— Block manipulation ————
 
-  setBlocks = (blocks: ResumeBlock[], recordUndo = true) => {
+  setBlocks = (blocks: ResumeBlock[], recordUndo = true, deferCommit = false) => {
     if (recordUndo) {
       this.pushUndo();
+      this.markChanged();
     }
     const nextBlocks = blocks.map(sanitizeBlock);
     this.blocks = nextBlocks;
-    persistBlocks(nextBlocks, blocksToMarkdown(nextBlocks));
-    this.syncPreview();
+    if (deferCommit) {
+      this.scheduleBlockCommit();
+      return;
+    }
+    const md = blocksToMarkdown(nextBlocks);
+    persistBlocks(nextBlocks, md);
+    this.syncPreview(md);
   }
 
   undo = () => {
@@ -216,7 +257,9 @@ class TemplateStore {
 
   updateBlock = (id: string, data: ResumeBlock['data']) => {
     this.setBlocks(
-      this.blocks.map(b => (b.id === id ? { ...b, data } : b))
+      this.blocks.map(b => (b.id === id ? { ...b, data } as ResumeBlock : b)),
+      true,
+      true
     );
   }
 

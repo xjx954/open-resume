@@ -32,9 +32,11 @@ function isEditableElement(target: EventTarget | null): target is HTMLInputEleme
   return !target.readOnly && !target.disabled;
 }
 
-function readSelection(element: HTMLInputElement | HTMLTextAreaElement): InlineTarget | null {
-  const start = element.selectionStart ?? 0;
-  const end = element.selectionEnd ?? start;
+function readTargetRange(
+  element: HTMLInputElement | HTMLTextAreaElement,
+  start: number,
+  end: number
+): InlineTarget | null {
   const text = element.value.slice(start, end).trim();
   if (!text || start === end) return null;
 
@@ -48,6 +50,12 @@ function readSelection(element: HTMLInputElement | HTMLTextAreaElement): InlineT
     left: rect.left + 8,
     fieldContext: getInlineRewriteContext(element),
   };
+}
+
+function readSelection(element: HTMLInputElement | HTMLTextAreaElement): InlineTarget | null {
+  const start = element.selectionStart ?? 0;
+  const end = element.selectionEnd ?? start;
+  return readTargetRange(element, start, end);
 }
 
 function getErrorMessage(error: unknown) {
@@ -73,6 +81,21 @@ const InlineAiRewrite: React.FC = observer(() => {
   useEffect(() => {
     targetRef.current = target;
   }, [target]);
+
+  const refreshTargetPosition = useCallback(() => {
+    const currentTarget = targetRef.current;
+    if (!currentTarget || !document.body.contains(currentTarget.element)) {
+      return;
+    }
+    const nextTarget = readTargetRange(
+      currentTarget.element,
+      currentTarget.start,
+      currentTarget.end
+    );
+    if (nextTarget) {
+      setTarget(nextTarget);
+    }
+  }, []);
 
   const resetPanelState = useCallback(() => {
     setPanelOpen(false);
@@ -121,16 +144,20 @@ const InlineAiRewrite: React.FC = observer(() => {
     document.addEventListener("mouseup", updateTarget);
     document.addEventListener("keyup", updateTarget);
     document.addEventListener("focusin", updateTarget);
+    window.addEventListener("scroll", refreshTargetPosition, true);
+    window.addEventListener("resize", refreshTargetPosition);
     return () => {
       document.removeEventListener("selectionchange", updateTarget);
       document.removeEventListener("mouseup", updateTarget);
       document.removeEventListener("keyup", updateTarget);
       document.removeEventListener("focusin", updateTarget);
+      window.removeEventListener("scroll", refreshTargetPosition, true);
+      window.removeEventListener("resize", refreshTargetPosition);
       if (updateTimerRef.current != null) {
         window.clearTimeout(updateTimerRef.current);
       }
     };
-  }, [panelOpen, resetPanelState]);
+  }, [panelOpen, refreshTargetPosition, resetPanelState]);
 
   const openSettings = useCallback(() => {
     window.dispatchEvent(new CustomEvent("open-resume:ai-settings"));

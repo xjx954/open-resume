@@ -42,9 +42,10 @@ const Square = () => {
     setTheme(theme);
     setColor(themeColor);
     setMdContent(md);
+    templateStore.markSaved();
     history.push("/editor");
     setCurTab("/editor");
-  }, [history, setColor, setCurTab, setMdContent, setTheme]);
+  }, [history, setColor, setCurTab, setMdContent, setTheme, templateStore]);
 
   const handleUse = useCallback(() => {
     if (!template) return;
@@ -150,7 +151,7 @@ const Square = () => {
                     预览模板
                   </Button>
                   <Popconfirm
-                    title="确定使用此模板替换当前编辑器内容吗？"
+                    title="此操作会覆盖当前编辑器内容。若刚做过手动修改，请先导出或确认已保留历史记录。确定继续吗？"
                     onConfirm={() => applyTemplate(item)}
                     okText="确定"
                     cancelText="取消"
@@ -227,7 +228,7 @@ const Square = () => {
                     预览模板
                   </Button>
                   <Popconfirm
-                    title="确定使用此模板替换当前编辑器内容吗？"
+                    title="此操作会覆盖当前编辑器内容。若刚做过手动修改，请先导出或确认已保留历史记录。确定继续吗？"
                     onConfirm={() => applyTemplate(item)}
                     okText="确定"
                     cancelText="取消"
@@ -261,7 +262,7 @@ const Square = () => {
                 预览全屏
               </Button>
               <Popconfirm
-                title="确定使用此模板替换当前编辑器内容吗？"
+                title="此操作会覆盖当前编辑器内容。若刚做过手动修改，请先导出或确认已保留历史记录。确定继续吗？"
                 onConfirm={handleUse}
                 okText="确定"
                 cancelText="取消"

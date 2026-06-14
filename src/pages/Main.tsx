@@ -18,6 +18,21 @@ const PAPER_WIDTH = 794;
 const SIDEBAR_DEFAULT = 600;
 const SIDEBAR_MIN = 400;
 const SIDEBAR_MAX = 1200;
+const MOBILE_BREAKPOINT = 900;
+
+function useNarrowViewport() {
+  const [isNarrow, setIsNarrow] = useState(() => window.innerWidth <= MOBILE_BREAKPOINT);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsNarrow(window.innerWidth <= MOBILE_BREAKPOINT);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return isNarrow;
+}
 
 const Main: React.FC = observer(() => {
   const location = useLocation();
@@ -37,6 +52,7 @@ const Main: React.FC = observer(() => {
   }, [urlMdMode]);
 
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const isNarrowViewport = useNarrowViewport();
   const viewWrapperRef = useRef<HTMLDivElement>(null);
   const previewBeforeOnePageRef = useRef<boolean | null>(null);
 
@@ -115,42 +131,60 @@ const Main: React.FC = observer(() => {
     });
   }, [history, location.pathname, location.search, editorMode, templateStore]);
 
+  const editorContent = (
+    <div className="rs-editor-panel">
+      <div className="rs-editor-mode-switch">
+        <Radio.Group
+          size="small"
+          value={editorMode}
+          onChange={e => handleModeChange(e.target.value)}
+        >
+          <Radio.Button value="block">可视化编辑</Radio.Button>
+          <Radio.Button value="md">Markdown</Radio.Button>
+        </Radio.Group>
+      </div>
+      <div className="rs-editor-panel__body" key={editorMode}>
+        {editorMode === "md" ? <Editor /> : <BlockEditor />}
+      </div>
+    </div>
+  );
+
+  const previewContent = (
+    <div className="rs-preview-panel">
+      <EditorToolbar
+        zoom={zoom}
+        isPreview={templateStore.isPreview}
+        isSmartOnePage={templateStore.pdfLayoutMode === 'smart-one-page'}
+        density={templateStore.pdfDensity}
+        canFitOnePage={templateStore.pdfCanFitOnePage}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onFitWidth={handleFitWidth}
+        onZoomPreset={handleZoomPreset}
+        onTogglePreview={handleTogglePreview}
+        onToggleSmartOnePage={handleToggleSmartOnePage}
+      />
+      <div className="rs-view-wrapper" ref={viewWrapperRef}>
+        <View zoom={zoom} />
+      </div>
+    </div>
+  );
+
+  if (isNarrowViewport) {
+    return (
+      <div className="rs-container rs-container--mobile">
+        {editorContent}
+        {previewContent}
+        <ColorPicker />
+      </div>
+    );
+  }
+
   return (
     <div className="rs-container">
       <SplitPane split="vertical" defaultSize={SIDEBAR_DEFAULT} minSize={SIDEBAR_MIN} maxSize={SIDEBAR_MAX}>
-        <div className="rs-editor-panel">
-          <div className="rs-editor-mode-switch">
-            <Radio.Group
-              size="small"
-              value={editorMode}
-              onChange={e => handleModeChange(e.target.value)}
-            >
-              <Radio.Button value="block">可视化编辑</Radio.Button>
-              <Radio.Button value="md">Markdown</Radio.Button>
-            </Radio.Group>
-          </div>
-          <div className="rs-editor-panel__body" key={editorMode}>
-            {editorMode === "md" ? <Editor /> : <BlockEditor />}
-          </div>
-        </div>
-        <div className="rs-preview-panel">
-          <EditorToolbar
-            zoom={zoom}
-            isPreview={templateStore.isPreview}
-            isSmartOnePage={templateStore.pdfLayoutMode === 'smart-one-page'}
-            density={templateStore.pdfDensity}
-            canFitOnePage={templateStore.pdfCanFitOnePage}
-            onZoomIn={handleZoomIn}
-            onZoomOut={handleZoomOut}
-            onFitWidth={handleFitWidth}
-            onZoomPreset={handleZoomPreset}
-            onTogglePreview={handleTogglePreview}
-            onToggleSmartOnePage={handleToggleSmartOnePage}
-          />
-          <div className="rs-view-wrapper" ref={viewWrapperRef}>
-            <View zoom={zoom} />
-          </div>
-        </div>
+        {editorContent}
+        {previewContent}
       </SplitPane>
       <ColorPicker />
     </div>

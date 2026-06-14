@@ -37,7 +37,6 @@ import History from "@src/components/History";
 import ResumeAiModal from "@src/components/ResumeAiModal";
 import AiSettingsModal from "@src/components/AiSettingsModal";
 import ResumeImportModal from "@src/components/ResumeImportModal";
-import { HeaderData } from "@src/types/resume";
 
 const is_update = +(localStorage.getItem(LOCAL_STORE.MD_UPDATE_LOG) || 0) >= UPDATE_LOG_VERSION ? false : true;
 
@@ -74,7 +73,7 @@ const HeaderBar = observer(() => {
   const currentTheme = themes.find(t => t.id === theme);
   const resumeName = useMemo(() => {
     const header = templateStore.blocks.find(block => block.type === 'header');
-    const name = header ? (header.data as HeaderData).name?.trim() : '';
+    const name = header?.type === 'header' ? header.data.name?.trim() : '';
     return name ? `${name}简历` : '未命名简历';
   }, [templateStore.blocks]);
 

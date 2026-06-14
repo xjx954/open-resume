@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import InlineAiRewrite from "../InlineAiRewrite";
 import { runInlineRewrite } from "@src/service/ai";
 import { AI_CONFIG_KEY } from "@src/service/aiConfig";
@@ -151,5 +151,44 @@ describe("InlineAiRewrite", () => {
 
     expect(getByText("替换原文")).toBeDisabled();
     expect(getByText("插入下方")).toBeDisabled();
+  });
+
+  it("repositions the popover when the page scrolls", async () => {
+    const { getByText, textarea } = renderWithSelectedText();
+    const rectSpy = jest.spyOn(textarea, "getBoundingClientRect");
+    rectSpy.mockReturnValue({
+      top: 200,
+      left: 40,
+      right: 440,
+      bottom: 240,
+      width: 400,
+      height: 40,
+      x: 40,
+      y: 200,
+      toJSON: () => ({}),
+    } as DOMRect);
+    document.dispatchEvent(new Event("selectionchange"));
+
+    const button = await waitFor(() => getByText("AI 润色"));
+    const popover = button.closest(".inline-ai-rewrite-popover") as HTMLElement;
+    expect(popover.style.top).toBe("158px");
+
+    rectSpy.mockReturnValue({
+      top: 120,
+      left: 40,
+      right: 440,
+      bottom: 160,
+      width: 400,
+      height: 40,
+      x: 40,
+      y: 120,
+      toJSON: () => ({}),
+    } as DOMRect);
+    act(() => {
+      window.dispatchEvent(new Event("scroll"));
+    });
+
+    await waitFor(() => expect(popover.style.top).toBe("78px"));
+    rectSpy.mockRestore();
   });
 });

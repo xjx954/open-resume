@@ -1,34 +1,31 @@
 import React from 'react';
 import { Dropdown, Menu } from 'antd';
 import { PlusOutlined, UserOutlined, IdcardOutlined, UnorderedListOutlined } from '@ant-design/icons';
-import { ResumeBlock, HeaderData, TwoColumnData, SectionData } from '@src/types/resume';
+import { ResumeBlock } from '@src/types/resume';
 import { useStores } from '@src/store';
 import { observer } from 'mobx-react';
-
-function generateId(): string {
-  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-}
+import { generateId } from '@src/utils/id';
 
 function createBlock(type: ResumeBlock['type']): ResumeBlock {
   const id = generateId();
   switch (type) {
     case 'header':
-      return { id, type: 'header', data: { name: '', title: '' } as HeaderData };
+      return { id, type: 'header', data: { name: '', title: '' } };
     case 'two-column':
       return {
         id, type: 'two-column',
         data: {
           left: { text: '', contacts: [] },
           right: { text: '', contacts: [] },
-        } as TwoColumnData,
+        },
       };
     case 'section':
       return {
         id, type: 'section',
-        data: { level: 2, title: '', items: [], entries: [] } as SectionData,
+        data: { level: 2, title: '', items: [], entries: [] },
       };
     default:
-      return { id, type: 'section', data: { level: 2, title: '', items: [], entries: [] } as SectionData };
+      return { id, type: 'section', data: { level: 2, title: '', items: [], entries: [] } };
   }
 }
 

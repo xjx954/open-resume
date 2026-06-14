@@ -17,7 +17,7 @@ const History: React.FC<Props> = ({ visible: controlledVisible, onClose }) => {
   const localData = localStorage.getItem(LOCAL_STORE.MD_HISTORY);
   const data: HistoryLocalInfo[] = JSON.parse(localData || "[]").reverse() || [];
   const { templateStore } = useStores();
-  const { setPreview, setTheme, setMdContent, setColor } = templateStore;
+  const { setPreview, setTheme, setMdContent, setColor, markSaved } = templateStore;
   const isControlled = controlledVisible !== undefined;
   const [internalVisible, setInternalVisible] = useState(false);
   const visible = isControlled ? controlledVisible : internalVisible;
@@ -37,6 +37,7 @@ const History: React.FC<Props> = ({ visible: controlledVisible, onClose }) => {
     setColor(color);
     // 设置内容
     setMdContent(md)
+    markSaved();
     // 临时设置
     setTimeout(async () => {
       // 设置编辑器内容
