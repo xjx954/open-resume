@@ -181,6 +181,118 @@
   line-height: 1.6;
 }
 
+.resume-ai-modal {
+  width: min(920px, calc(100vw - 32px)) !important;
+}
+
+.ats-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ats-metrics__item {
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 6px;
+
+  span {
+    display: block;
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  strong {
+    display: block;
+    margin-top: 4px;
+    color: #111827;
+    font-size: 14px;
+  }
+
+  small {
+    display: block;
+    margin-top: 2px;
+    color: #8b95a1;
+    font-size: 12px;
+  }
+}
+
+.ats-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ats-issue {
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+
+  &:first-child {
+    padding-top: 0;
+    border-top: none;
+  }
+
+  div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  p {
+    margin-top: 6px;
+  }
+}
+
+.diagnosis-score-card {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  background: #f8fafc;
+}
+
+.diagnosis-score-card__item {
+  span {
+    display: block;
+    color: #6b7280;
+    font-size: 12px;
+  }
+
+  strong {
+    display: block;
+    margin-top: 4px;
+    color: #111827;
+    font-size: 24px;
+  }
+}
+
+.diagnosis-priority-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.diagnosis-priority {
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+
+  &:first-child {
+    padding-top: 0;
+    border-top: none;
+  }
+
+  div {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  p {
+    margin-top: 6px;
+  }
+}
+
 .resume-ai-diff {
   margin-top: 12px;
   border: 1px solid #e5e7eb;
@@ -260,4 +372,30 @@
   color: #8b95a1;
   font-size: 12px;
   line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .resume-ai {
+    grid-template-columns: 1fr;
+    gap: 16px;
+
+    &__task-group {
+      overflow-x: auto;
+
+      .ant-radio-button-wrapper {
+        min-width: 92px;
+        flex: 0 0 auto;
+      }
+    }
+  }
+
+  .resume-analysis-report {
+    max-height: 420px;
+  }
+
+  .analysis-keywords,
+  .ats-metrics,
+  .diagnosis-score-card {
+    grid-template-columns: 1fr;
+  }
 }

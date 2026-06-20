@@ -1,12 +1,18 @@
 import React, { useMemo, useState } from "react";
 import { Button, Input, message, Modal, Radio, Space } from "antd";
-import { AiTaskOption, AiTaskType, GeneratedBullet, ResumeAnalysisResult } from "@src/types/ai";
-import { runJobMatchAnalysis, runResumeAiTask } from "@src/service/ai";
-import { isAiConfigError, loadAiConfig } from "@src/service/aiConfig";
+import { AiTaskOption, AiTaskType, GeneratedBullet, JobDiagnosisReport, ResumeAnalysisResult } from "@src/types/ai";
+import {
+  isAiConfigError,
+  loadAiConfig,
+  runJobMatchAnalysis,
+  runResumeAiTask,
+} from "@src/service/ai";
+import { analyzeJobDiagnosis } from "@src/service/jobDiagnosis";
 import { applyGeneratedBulletToBlocks, getGeneratedBulletKey } from "@src/utils/aiApply";
 import { buildParagraphDiff, ParagraphDiffRow } from "@src/utils/markdownDiff";
 import { useStores } from "@src/store";
 import ResumeAnalysisReportView from "./ResumeAnalysisReport";
+import JobDiagnosisReportView from "./JobDiagnosisReport";
 import "./index.less";
 
 const { TextArea } = Input;
@@ -27,6 +33,11 @@ const taskOptions: AiTaskOption[] = [
     type: "job_match",
     title: "岗位匹配分析",
     description: "分析关键词覆盖、优势、待提升项和可复制的补充内容。",
+  },
+  {
+    type: "ats_check",
+    title: "求职诊断",
+    description: "本地规则合并 ATS 检查、JD 关键词覆盖、技能覆盖和经历匹配。",
   },
 ];
 
@@ -52,6 +63,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
   const [jobDescription, setJobDescription] = useState("");
   const [result, setResult] = useState("");
   const [analysisResult, setAnalysisResult] = useState<ResumeAnalysisResult | null>(null);
+  const [jobDiagnosisReport, setJobDiagnosisReport] = useState<JobDiagnosisReport | null>(null);
   const [bulletStates, setBulletStates] = useState<Record<string, BulletState>>({});
   const [loading, setLoading] = useState(false);
 
@@ -71,6 +83,13 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
       if (taskType === "job_match") {
         const report = await runJobMatchAnalysis(markdown, jobDescription, loadAiConfig());
         setAnalysisResult(report);
+        setJobDiagnosisReport(null);
+        setResult("");
+        setBulletStates({});
+      } else if (taskType === "ats_check") {
+        const report = analyzeJobDiagnosis(markdown, jobDescription);
+        setJobDiagnosisReport(report);
+        setAnalysisResult(null);
         setResult("");
         setBulletStates({});
       } else {
@@ -82,8 +101,9 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
         );
         setResult(content);
         setAnalysisResult(null);
+        setJobDiagnosisReport(null);
       }
-      message.success("AI 结果已生成");
+      message.success(taskType === "ats_check" ? "求职诊断已完成" : "AI 结果已生成");
     } catch (e: any) {
       const errorMessage = e?.message || "AI 请求失败，请检查配置后重试。";
       if (isAiConfigError(e)) {
@@ -108,6 +128,8 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
   };
 
   const isAnalysisMode = taskType === "job_match";
+  const isDiagnosisMode = taskType === "ats_check";
+  const isReportMode = isAnalysisMode || isDiagnosisMode;
 
   return (
     <Modal
@@ -116,6 +138,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
       onCancel={onCancel}
       footer={null}
       width={920}
+      className="resume-ai-modal"
       destroyOnClose={false}
     >
       <div className="resume-ai">
@@ -127,6 +150,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
               setTaskType(event.target.value as AiTaskType);
               setResult("");
               setAnalysisResult(null);
+              setJobDiagnosisReport(null);
               setBulletStates({});
             }}
             className="resume-ai__task-group"
@@ -149,13 +173,20 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
           />
         </div>
         <Button type="primary" loading={loading} onClick={runTask}>
-          {isAnalysisMode ? "开始分析" : "生成优化结果"}
+          {isAnalysisMode ? "开始分析" : isDiagnosisMode ? "开始诊断" : "生成优化结果"}
         </Button>
         <div className="resume-ai__result">
           <div className="resume-ai__result-title">
-            {isAnalysisMode ? "岗位匹配分析" : "AI 结果"}
+            {isAnalysisMode ? "岗位匹配分析" : isDiagnosisMode ? "求职诊断" : "AI 结果"}
           </div>
-          {isAnalysisMode ? (
+          {isReportMode ? (
+            isDiagnosisMode ? (
+              jobDiagnosisReport ? (
+                <JobDiagnosisReportView report={jobDiagnosisReport} />
+              ) : (
+                <div className="resume-ai__placeholder">点击开始诊断，查看 ATS 风险、关键词覆盖和经历匹配。</div>
+              )
+            ) : (
             analysisResult?.kind === "report" ? (
               <ResumeAnalysisReportView
                 report={analysisResult.report}
@@ -183,6 +214,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
               <TextArea value={analysisResult.rawText} rows={12} readOnly />
             ) : (
               <div className="resume-ai__placeholder">粘贴岗位描述后开始分析。</div>
+            )
             )
           ) : (
             <>

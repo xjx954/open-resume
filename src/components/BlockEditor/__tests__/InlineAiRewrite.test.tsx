@@ -5,6 +5,7 @@ import { runInlineRewrite } from "@src/service/ai";
 import { AI_CONFIG_KEY } from "@src/service/aiConfig";
 
 jest.mock("@src/service/ai", () => ({
+  ...jest.requireActual("@src/service/ai"),
   runInlineRewrite: jest.fn(),
 }));
 

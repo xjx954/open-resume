@@ -2,8 +2,12 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { message } from "antd";
 import { observer } from "mobx-react";
 import { useStores } from "@src/store";
-import { runInlineRewrite } from "@src/service/ai";
-import { isAiConfigError, isAiConfigReady, loadAiConfig } from "@src/service/aiConfig";
+import {
+  isAiConfigError,
+  isAiConfigReady,
+  loadAiConfig,
+  runInlineRewrite,
+} from "@src/service/ai";
 import {
   applyInputSelectionInsertion,
   applyInputSelectionReplacement,

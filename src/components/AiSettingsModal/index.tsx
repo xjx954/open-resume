@@ -6,7 +6,7 @@ import {
   providerPresets,
   saveAiConfig,
   testAiConnection,
-} from "@src/service/aiConfig";
+} from "@src/service/ai";
 import "./index.less";
 
 interface AiSettingsModalProps {
