@@ -39,7 +39,7 @@ describe("ResumeAiModal", () => {
     const originalFetch = global.fetch;
     const fetchMock = jest.fn();
     (global as any).fetch = fetchMock;
-    const { getByText } = render(
+    const { getAllByText, getByText } = render(
       <ResumeAiModal
         visible
         markdown={"# 张三\n\n邮箱：zhangsan@example.com\n\n## 工作经历\n\n- 负责 React 页面开发\n\n## 项目经历\n\n- 使用 Docker 部署项目\n\n## 技能\n\n- React、TypeScript、Docker"}
@@ -66,6 +66,13 @@ describe("ResumeAiModal", () => {
     expect(getByText("优先补充关键词")).toBeInTheDocument();
     expect(getByText("项目经历匹配情况")).toBeInTheDocument();
     expect(getByText("工作经历匹配情况")).toBeInTheDocument();
+    expect(getByText("优化建议卡片")).toBeInTheDocument();
+
+    fireEvent.click(getAllByText("查看优化建议")[0]);
+    expect(getByText("问题原因")).toBeInTheDocument();
+    expect(getByText("推荐修改方式")).toBeInTheDocument();
+    expect(getByText("示例写法")).toBeInTheDocument();
+    expect(getByText("使用 AI 生成优化版本")).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
 
     (global as any).fetch = originalFetch;

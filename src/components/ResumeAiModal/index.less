@@ -345,6 +345,117 @@
   }
 }
 
+.diagnosis-advice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.diagnosis-advice {
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+
+  &:first-child {
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
+.diagnosis-advice__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  strong {
+    color: #1f2937;
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+}
+
+.diagnosis-advice__details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 6px;
+
+  span {
+    display: block;
+    margin-bottom: 3px;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  p {
+    font-size: 12px;
+  }
+}
+
+.diagnosis-optimization-panel {
+  margin-top: 10px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+}
+
+.diagnosis-optimization-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+
+  span {
+    display: block;
+    color: #4f46e5;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  strong {
+    display: block;
+    margin-top: 2px;
+    color: #111827;
+  }
+}
+
+.diagnosis-optimization-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    display: block;
+    margin-bottom: 4px;
+    color: #4b5563;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  p {
+    padding: 8px 10px;
+    color: #374151;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 6px;
+    white-space: pre-wrap;
+  }
+}
+
+.diagnosis-optimization-panel__actions {
+  margin-top: 10px;
+}
+
 .resume-ai-diff {
   margin-top: 12px;
   border: 1px solid #e5e7eb;
@@ -449,5 +560,10 @@
   .ats-metrics,
   .diagnosis-score-card {
     grid-template-columns: 1fr;
+  }
+
+  .diagnosis-advice__head,
+  .diagnosis-optimization-panel__head {
+    flex-direction: column;
   }
 }

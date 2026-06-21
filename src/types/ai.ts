@@ -168,3 +168,25 @@ export interface JobDiagnosisReport {
   scoreBreakdown: ScoreBreakdownItem[];
   suggestions: Suggestion[];
 }
+
+export interface JobDiagnosisOptimizationIssue {
+  title: string;
+  detail: string;
+  reason: string;
+  recommendation: string;
+  example: string;
+}
+
+export interface JobDiagnosisOptimizationParams {
+  resumeMarkdown: string;
+  jobDescription?: string;
+  issue: JobDiagnosisOptimizationIssue;
+  generationIndex?: number;
+  config: AiConfig;
+}
+
+export interface JobDiagnosisOptimizationResult {
+  originalContent: string;
+  optimizedContent: string;
+  explanation: string;
+}

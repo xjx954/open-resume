@@ -182,7 +182,12 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
           {isReportMode ? (
             isDiagnosisMode ? (
               jobDiagnosisReport ? (
-                <JobDiagnosisReportView report={jobDiagnosisReport} />
+                <JobDiagnosisReportView
+                  report={jobDiagnosisReport}
+                  resumeMarkdown={markdown}
+                  jobDescription={jobDescription}
+                  onOpenSettings={onOpenSettings}
+                />
               ) : (
                 <div className="resume-ai__placeholder">点击开始诊断，查看 ATS 风险、关键词覆盖和经历匹配。</div>
               )

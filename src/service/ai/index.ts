@@ -5,3 +5,4 @@ export * from "./types";
 export * from "./tasks/resumePolish";
 export * from "./tasks/inlineRewrite";
 export * from "./tasks/jobMatch";
+export * from "./tasks/jobDiagnosisOptimization";
