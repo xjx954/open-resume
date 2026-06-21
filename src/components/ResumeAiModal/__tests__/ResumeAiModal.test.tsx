@@ -62,6 +62,7 @@ describe("ResumeAiModal", () => {
     expect(getByText("关键词覆盖率")).toBeInTheDocument();
     expect(getByText("技能覆盖率")).toBeInTheDocument();
     expect(getByText("JD 关键词分类")).toBeInTheDocument();
+    expect(getByText("评分构成")).toBeInTheDocument();
     expect(getByText("优先补充关键词")).toBeInTheDocument();
     expect(getByText("项目经历匹配情况")).toBeInTheDocument();
     expect(getByText("工作经历匹配情况")).toBeInTheDocument();

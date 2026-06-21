@@ -2,7 +2,7 @@ import { AiConfig, AiTaskType } from "../types";
 import { createAiClient } from "../client";
 import { assertAiConfigReady } from "../config";
 
-type ResumeAiPromptTask = Exclude<AiTaskType, "ats_check">;
+type ResumeAiPromptTask = Exclude<AiTaskType, "job_diagnosis">;
 
 const taskPrompts: Record<ResumeAiPromptTask, string> = {
   polish:

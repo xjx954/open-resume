@@ -67,6 +67,24 @@ const JobDiagnosisReportView: React.FC<Props> = ({ report }) => {
         </div>
       </section>
 
+      <section className="analysis-card">
+        <h3>评分构成</h3>
+        <div className="score-breakdown">
+          {report.scoreBreakdown.map((item) => (
+            <article className="score-breakdown__item" key={item.key}>
+              <div className="score-breakdown__head">
+                <strong>{item.label}</strong>
+                <span>{item.counted ? `${item.score}/${item.maxScore}` : "未计入"}</span>
+              </div>
+              <div className="score-breakdown__bar">
+                <i style={{ width: item.counted ? `${Math.round((item.score / item.maxScore) * 100)}%` : "0%" }} />
+              </div>
+              <p>{item.reason}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <div className="analysis-keywords">
         <section className="analysis-card">
           <h3>匹配技能</h3>

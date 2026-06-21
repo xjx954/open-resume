@@ -5,6 +5,7 @@ import {
   JobKeywordItem,
   KeywordCategorySummary,
   PrioritizedKeyword,
+  ScoreBreakdownItem,
   Suggestion,
 } from "@src/types/ai";
 import { analyzeResumeAts } from "./atsAnalyzer";
@@ -170,6 +171,130 @@ function buildSuggestions(
   return suggestions;
 }
 
+function hasIssue(issues: { id: string }[], id: string) {
+  return issues.some((issue) => issue.id === id);
+}
+
+function buildScoreBreakdown(
+  atsReport: ReturnType<typeof analyzeResumeAts>,
+  keywordCoverage: number,
+  skillCoverage: number,
+  projectMatch: ExperienceMatchSummary,
+  jdKeywordCount: number
+): ScoreBreakdownItem[] {
+  const metrics = atsReport.metrics;
+  const issues = atsReport.issues;
+  const hasJobKeywords = jdKeywordCount > 0;
+  const contactScore = metrics.contactMethods >= 3 ? 10 : metrics.contactMethods >= 2 ? 8 : metrics.contactMethods >= 1 ? 4 : 0;
+  const workScore = metrics.workEntryCount >= 2 ? 12 : metrics.workEntryCount >= 1 ? 9 : 0;
+  const projectScore = metrics.projectEntryCount >= 1 ? 10 : 0;
+  const quantifiedScore = metrics.quantifiedBulletCoverage >= 60
+    ? 10
+    : metrics.quantifiedBulletCoverage >= 35
+      ? 7
+      : metrics.quantifiedBulletCoverage > 0
+        ? 4
+        : 0;
+  const atsRiskPenalty = Math.min(8, metrics.atsRiskCount * 3);
+  const repeatedPenalty = metrics.repeatedTerms.length ? Math.min(5, metrics.repeatedTerms.length * 2) : 0;
+
+  return [
+    {
+      key: "ats_base",
+      label: "ATS 基础分",
+      score: Math.round((atsReport.overallScore / 100) * 12),
+      maxScore: 12,
+      counted: true,
+      reason: `本地 ATS 规则分为 ${atsReport.overallScore}，折算为基础质量分。`,
+    },
+    {
+      key: "contact",
+      label: "联系方式",
+      score: contactScore,
+      maxScore: 10,
+      counted: true,
+      reason: metrics.contactMethods >= 2
+        ? `检测到 ${metrics.contactMethods} 类联系方式。`
+        : "联系方式不足，建议至少包含邮箱、手机、GitHub/LinkedIn/作品集中的两类。",
+    },
+    {
+      key: "work",
+      label: "经历完整性",
+      score: workScore,
+      maxScore: 12,
+      counted: true,
+      reason: metrics.workEntryCount
+        ? `检测到 ${metrics.workEntryCount} 段工作经历。`
+        : "未检测到有效工作经历。",
+    },
+    {
+      key: "project",
+      label: "项目完整性",
+      score: projectScore,
+      maxScore: 10,
+      counted: true,
+      reason: metrics.projectEntryCount
+        ? `检测到 ${metrics.projectEntryCount} 段项目经历。`
+        : "未检测到有效项目经历。",
+    },
+    {
+      key: "skill_coverage",
+      label: "技能覆盖",
+      score: hasJobKeywords ? Math.round((skillCoverage / 100) * 14) : 0,
+      maxScore: 14,
+      counted: hasJobKeywords,
+      reason: hasJobKeywords
+        ? `JD 技术技能覆盖率为 ${skillCoverage}%。`
+        : "未提供 JD，未计入总分。",
+    },
+    {
+      key: "jd_keyword_coverage",
+      label: "JD关键词覆盖",
+      score: hasJobKeywords ? Math.round((keywordCoverage / 100) * 18) : 0,
+      maxScore: 18,
+      counted: hasJobKeywords,
+      reason: hasJobKeywords
+        ? `命中 ${metrics.jobKeywordCount ? Math.round((keywordCoverage / 100) * metrics.jobKeywordCount) : 0}/${metrics.jobKeywordCount} 个 JD 关键词。`
+        : "未提供 JD，未计入总分。",
+    },
+    {
+      key: "quantified_results",
+      label: "量化成果",
+      score: quantifiedScore,
+      maxScore: 10,
+      counted: true,
+      reason: `量化成果覆盖率为 ${metrics.quantifiedBulletCoverage}%。`,
+    },
+    {
+      key: "ats_risk",
+      label: "ATS风险扣分",
+      score: Math.max(0, 8 - atsRiskPenalty),
+      maxScore: 8,
+      counted: true,
+      reason: metrics.atsRiskCount
+        ? `检测到 ${metrics.atsRiskCount} 项 ATS 风险，扣 ${atsRiskPenalty} 分。`
+        : "未检测到明显 ATS 解析风险。",
+    },
+    {
+      key: "repeated_terms",
+      label: "重复词扣分",
+      score: Math.max(0, 6 - repeatedPenalty),
+      maxScore: 6,
+      counted: true,
+      reason: hasIssue(issues, "repeated_terms")
+        ? `检测到 ${metrics.repeatedTerms.length} 个高频重复词，扣 ${repeatedPenalty} 分。`
+        : "未检测到明显高频重复词。",
+    },
+  ];
+}
+
+function summarizeScore(items: ScoreBreakdownItem[]) {
+  const counted = items.filter((item) => item.counted);
+  const score = counted.reduce((total, item) => total + item.score, 0);
+  const maxScore = counted.reduce((total, item) => total + item.maxScore, 0);
+  return maxScore ? clampScore((score / maxScore) * 100) : 0;
+}
+
 export function analyzeJobDiagnosis(markdown: string, jobDescription: string): JobDiagnosisReport {
   const atsReport = analyzeResumeAts(markdown, jobDescription);
   const jdKeywords = extractJobKeywords(jobDescription);
@@ -193,16 +318,15 @@ export function analyzeJobDiagnosis(markdown: string, jobDescription: string): J
     jdKeywords,
     "工作经历"
   );
-  const overallMatchScore = jdKeywords.length
-    ? clampScore(
-        keywordCoverage.keywordCoverage * 0.4 +
-        skillCoverage * 0.2 +
-        projectMatch.score * 0.15 +
-        workMatch.score * 0.15 +
-        atsReport.overallScore * 0.1
-      )
-    : atsReport.overallScore;
   const hasJobKeywords = jdKeywords.length > 0;
+  const scoreBreakdown = buildScoreBreakdown(
+    atsReport,
+    keywordCoverage.keywordCoverage,
+    skillCoverage,
+    projectMatch,
+    jdKeywords.length
+  );
+  const overallMatchScore = summarizeScore(scoreBreakdown);
 
   return {
     overallMatchScore,
@@ -218,6 +342,7 @@ export function analyzeJobDiagnosis(markdown: string, jobDescription: string): J
     projectMatch,
     workMatch,
     atsIssues: atsReport.issues,
+    scoreBreakdown,
     suggestions: buildSuggestions(
       atsReport.suggestions,
       prioritizedKeywords,

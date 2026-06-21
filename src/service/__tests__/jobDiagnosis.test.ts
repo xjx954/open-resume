@@ -55,6 +55,23 @@ describe("analyzeJobDiagnosis", () => {
     expect(report.projectMatch.summary).toBeTruthy();
     expect(report.workMatch.summary).toBeTruthy();
     expect(report.suggestions.length).toBeGreaterThan(0);
+    expect(report.scoreBreakdown.map((item) => item.label)).toEqual(
+      expect.arrayContaining([
+        "ATS 基础分",
+        "联系方式",
+        "经历完整性",
+        "项目完整性",
+        "技能覆盖",
+        "JD关键词覆盖",
+        "量化成果",
+        "ATS风险扣分",
+        "重复词扣分",
+      ])
+    );
+    expect(report.scoreBreakdown.every((item) => item.score <= item.maxScore)).toBe(true);
+    expect(report.scoreBreakdown.find((item) => item.label === "JD关键词覆盖")).toEqual(
+      expect.objectContaining({ counted: true })
+    );
   });
 
   it("keeps the diagnosis explainable when JD is empty", () => {
@@ -67,5 +84,17 @@ describe("analyzeJobDiagnosis", () => {
     expect(report.prioritizedKeywords).toEqual([]);
     expect(report.categorizedKeywords.every((item) => item.total === 0)).toBe(true);
     expect(report.suggestions.map((item) => `${item.title}${item.detail}`).join("\n")).not.toMatch(/JD|关键词/);
+    expect(report.scoreBreakdown.find((item) => item.label === "JD关键词覆盖")).toEqual(
+      expect.objectContaining({
+        counted: false,
+        reason: "未提供 JD，未计入总分。",
+      })
+    );
+    expect(report.scoreBreakdown.find((item) => item.label === "技能覆盖")).toEqual(
+      expect.objectContaining({
+        counted: false,
+        reason: "未提供 JD，未计入总分。",
+      })
+    );
   });
 });

@@ -1,4 +1,4 @@
-export type AiTaskType = "polish" | "job_match" | "ats_check";
+export type AiTaskType = "polish" | "job_match" | "job_diagnosis";
 
 export interface AiConfig {
   apiKey: string;
@@ -142,6 +142,15 @@ export interface ExperienceMatchSummary {
   summary: string;
 }
 
+export interface ScoreBreakdownItem {
+  key: string;
+  label: string;
+  score: number;
+  maxScore: number;
+  reason: string;
+  counted: boolean;
+}
+
 export interface JobDiagnosisReport {
   overallMatchScore: number;
   atsScore: number;
@@ -156,5 +165,6 @@ export interface JobDiagnosisReport {
   projectMatch: ExperienceMatchSummary;
   workMatch: ExperienceMatchSummary;
   atsIssues: AtsIssue[];
+  scoreBreakdown: ScoreBreakdownItem[];
   suggestions: Suggestion[];
 }

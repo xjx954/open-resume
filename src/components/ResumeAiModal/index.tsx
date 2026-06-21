@@ -35,7 +35,7 @@ const taskOptions: AiTaskOption[] = [
     description: "分析关键词覆盖、优势、待提升项和可复制的补充内容。",
   },
   {
-    type: "ats_check",
+    type: "job_diagnosis",
     title: "求职诊断",
     description: "本地规则合并 ATS 检查、JD 关键词覆盖、技能覆盖和经历匹配。",
   },
@@ -86,7 +86,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
         setJobDiagnosisReport(null);
         setResult("");
         setBulletStates({});
-      } else if (taskType === "ats_check") {
+      } else if (taskType === "job_diagnosis") {
         const report = analyzeJobDiagnosis(markdown, jobDescription);
         setJobDiagnosisReport(report);
         setAnalysisResult(null);
@@ -103,7 +103,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
         setAnalysisResult(null);
         setJobDiagnosisReport(null);
       }
-      message.success(taskType === "ats_check" ? "求职诊断已完成" : "AI 结果已生成");
+      message.success(taskType === "job_diagnosis" ? "求职诊断已完成" : "AI 结果已生成");
     } catch (e: any) {
       const errorMessage = e?.message || "AI 请求失败，请检查配置后重试。";
       if (isAiConfigError(e)) {
@@ -128,7 +128,7 @@ const ResumeAiModal: React.FC<ResumeAiModalProps> = ({
   };
 
   const isAnalysisMode = taskType === "job_match";
-  const isDiagnosisMode = taskType === "ats_check";
+  const isDiagnosisMode = taskType === "job_diagnosis";
   const isReportMode = isAnalysisMode || isDiagnosisMode;
 
   return (

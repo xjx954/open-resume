@@ -1,123 +1,114 @@
 # Open Resume
 
-免费开源 Markdown 简历制作工具，支持双编辑模式、AI 辅助写作、5 套精品主题和一键导出 PDF。
+Open Resume 是一个面向中文/英文简历写作的开源简历编辑器，提供 Markdown/可视化编辑、模板预览、PDF 导出、AI 辅助润色和本地规则版求职诊断。
 
-[English](README.zh-CN.md) | 简体中文
+## Screenshots
 
-## 功能
+> TODO: Add screenshots for the editor, template preview, AI settings, and job diagnosis report.
 
-### 编辑
-- **Markdown 编辑器** — 语法高亮 + 实时预览，所见即所得
-- **可视化块编辑器** — 基于 `@dnd-kit` 的拖拽式卡片编辑，支持排序、折叠、复制、删除
-- **导入/导出** — 导入或导出 `.md` 文件，随处可用
-- **照片上传** — 支持简历照片上传与裁剪
-- **撤销/重做** — 内置编辑历史，支持回退和恢复
+## Core Features
 
-### AI 辅助
-- **AI 润色** — 优化措辞，提升专业度
-- **经历生成** — 将模糊描述转化为量化成果
-- **岗位匹配分析** — 针对 JD 进行关键词覆盖检测与结构化 AI 报告
-- **段落对比** — AI 修改前后差异高亮，一键应用
+- **Markdown 编辑**：使用 Markdown 编写简历，并实时预览渲染结果。
+- **可视化 Blocks 编辑**：通过结构化块编辑简历内容，支持排序、复制、删除等常用操作。
+- **模板与主题预览**：提供多套简历模板和主题配置，用于快速查看不同排版效果。
+- **PDF 导出**：通过本地 PDF 服务导出简历。
+- **本地历史记录**：使用浏览器本地存储保留编辑历史，便于恢复。
 
-*支持 OpenAI 兼容 API，提供 DeepSeek / Qwen / OpenAI 等预设，向导式配置，一键测试连接。*
+## AI Capabilities
 
-### 主题与导出
-- **5 套精品主题** — 极简经典、蓝色专业、中文正式、双栏专业、科研学术，各有独立配色
-- **自定义主题色** — 内置取色器，可换色主题随心调整强调色
-- **PDF 导出** — 一键生成 PDF，支持单页模式和水印选项
-- **模板集市** — 在 `/square` 浏览和预览全部模板
+AI 功能服务于简历写作场景，当前包括：
 
-### 其他
-- **编辑历史** — 从 localStorage 历史中恢复之前版本
-- **图标快捷输入** — 通过 `icon:xxx` 语法插入邮箱、电话、GitHub 等联系图标
-- **双栏布局** — 支持 `::: sidebar / ::: main` 容器语法，实现左右分栏简历
+- 简历整体润色
+- 选中文本的行内润色
+- 基于岗位 JD 的岗位匹配分析
 
-## 快速开始
+项目支持 OpenAI-compatible API，并提供 OpenAI、DeepSeek、Qwen、GLM、Moonshot / Kimi、Ollama 本地模型等配置入口。当前 AI Key 由用户在浏览器内配置，适合本地开发和个人使用；如果要部署给多人使用，建议在后续接入后端代理，避免把 API Key 暴露在浏览器端。
 
-```bash
-npm install        # postinstall 自动安装后端依赖
-npm start          # 前端 :3000 + PDF 后端 :4000
-npm run start:web  # 仅启动前端
-```
+## Job Diagnosis
 
-浏览器打开 [http://localhost:3000](http://localhost:3000)。
+求职诊断为本地规则引擎，不需要配置 API Key，也不会调用 AI 接口。当前会基于简历和可选 JD 输出：
 
-### PDF 后端
+- 总体匹配分与 ATS 分
+- 关键词覆盖率
+- 命中关键词与缺失关键词
+- 匹配技能与缺失技能
+- 项目经历、工作经历匹配情况
+- 可解释评分构成
+- 改进建议
 
-PDF 导出需要 Puppeteer（无头 Chrome）。首次安装时自动下载 Chromium（约 300MB）。
+该能力后续可接入 AI 做增强分析，但规则检查仍应作为基础能力保留。
 
-| 服务   | 端口 | 接口             |
-| ------ | ---- | ---------------- |
-| 前端   | 3000 | React 开发服务器 |
-| PDF API | 4000 | `POST /api/pdf` |
-
-在 `.env` 中配置后端地址（复制 `.env.example`）：
-
-```
-REACT_APP_PDF_API_URL=http://localhost:4000/api/pdf
-```
-
-## 项目结构
-
-```
-src/
-├── components/
-│   ├── BlockEditor/         # 可视化拖拽块编辑器 + 行内 AI 润色
-│   ├── HeaderBar/           # 编辑工具栏（导出、主题、AI、历史）
-│   ├── HeaderCommonBar/     # 全局导航栏
-│   ├── EditorToolbar/       # 预览缩放控件
-│   ├── ResumeAiModal/       # AI 助手弹窗（润色/匹配/经历生成）
-│   ├── AiSettingsModal/     # AI 配置向导（选服务商 → 贴 Key → 测试）
-│   ├── TemplatePreview/     # 模板预览组件
-│   ├── History/             # 版本历史浏览
-│   └── ...
-├── pages/
-│   ├── Home.tsx             # 首页
-│   ├── Main.tsx             # 编辑器分栏布局（Markdown + 预览）
-│   ├── Square.tsx           # 模板集市
-│   └── View.tsx             # 实时 HTML 预览渲染
-├── store/
-│   └── template.store.ts    # MobX 状态（块、主题、颜色、预览）
-├── utils/
-│   ├── helper.ts            # markdown-it 配置 + 自定义渲染器
-│   ├── blockSerializer.ts   # Markdown ↔ ResumeBlock[] 转换
-│   ├── aiApply.ts           # AI 结果一键应用到编辑器
-│   ├── markdownDiff.ts      # AI 修改前后段落对比
-│   └── global.ts            # 渲染管线 + 历史持久化
-├── types/
-│   └── resume.ts            # ResumeBlock, SectionData 等类型定义
-└── service/
-    ├── ai.ts                # OpenAI 兼容的对话补全
-    ├── aiConfig.ts          # AI 配置持久化 + 连接测试
-    ├── jobMatchAnalysis.ts  # 岗位匹配关键词提取与分析
-    └── htmlToPdf.ts         # PDF 生成代理
-```
-
-## 技术栈
-
-| 层级     | 技术                                     |
-| -------- | ---------------------------------------- |
-| 框架     | React 17 + TypeScript                    |
-| 状态管理 | MobX                                     |
-| UI 组件  | Ant Design                               |
-| Markdown | markdown-it（自定义 heading-container + emoji 插件） |
-| 代码编辑 | CodeMirror (`@uiw/react-codemirror`)     |
-| 拖拽     | `@dnd-kit/core` + `@dnd-kit/sortable`  |
-| PDF      | Puppeteer（后端无头 Chrome）             |
-| 构建     | Webpack 4（ejected CRA）                 |
-| 样式     | Less（5 套主题共享 `common/global.less` 排版基础） |
-
-## 开发
+## Local Setup
 
 ```bash
 npm install
-npm start                   # 开发服务器，支持热重载
-
-npm test                    # 运行测试
-npm run compile:themes      # 编译 Less → CSS
-npm run build:themes        # 打包 CSS → theme.js
+npm start
 ```
+
+默认启动：
+
+- 前端：http://localhost:3000
+- PDF API：http://localhost:4000/api/pdf
+
+如果只需要启动前端：
+
+```bash
+npm run start:web
+```
+
+常用检查：
+
+```bash
+npm test -- --watchAll=false --runInBand
+npm run build
+```
+
+## AI Configuration
+
+打开应用中的 AI 设置后，可以选择预设服务商或手动填写 OpenAI-compatible 配置：
+
+- Base URL
+- Model
+- API Key
+
+示例：
+
+```text
+OpenAI-compatible base URL: https://api.openai.com/v1
+DeepSeek base URL: https://api.deepseek.com/v1
+Moonshot / Kimi base URL: https://api.moonshot.cn/v1
+Ollama base URL: http://127.0.0.1:11434/v1
+Ollama model: qwen2.5:7b-instruct-q4_K_M
+```
+
+不要把真实 API Key 提交到仓库。当前前端 AI 流程不读取 `.env` 中的 AI Key，用户应在本地浏览器设置中配置。
+
+## Tech Stack
+
+- React 17
+- TypeScript
+- MobX
+- Ant Design
+- Less
+- Markdown-it
+- CodeMirror
+- dnd-kit
+- Puppeteer PDF service
+- Ejected CRA / Webpack 4
+
+## Roadmap
+
+- AI Key 后端代理，降低浏览器端暴露风险
+- AI 流式输出
+- Markdown / Blocks 双模式一致性增强
+- Vite 迁移评估与实施
+- 更完整的 ATS / 求职诊断规则
+- 项目截图、在线 Demo 和更完善的使用文档
+
+## Contributing
+
+欢迎提交 Issue 和 PR。请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)，并确保不要提交 `build/`、`.env`、API Key 或无关生成文件。
 
 ## License
 
-GPL-3.0 © xjx954
+GPL-3.0
