@@ -4,7 +4,13 @@ Open Resume 是一个面向中文/英文简历写作的开源简历编辑器，�
 
 ## Screenshots
 
-> TODO: Add screenshots for the editor, template preview, AI settings, and job diagnosis report.
+Recommended screenshots to add before publishing:
+
+- 首页首屏：AI 求职助手定位、诊断报告卡片和核心能力
+- 求职诊断报告：ATS 分、JD 匹配、缺失关键词和可解释评分
+- AI 优化建议：诊断问题到优化前后对比
+- 编辑器：Blocks 编辑器、实时预览和 PDF 导出入口
+- 模板中心：精选模板列表和模板预览
 
 ## Core Features
 
